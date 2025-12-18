@@ -1,0 +1,455 @@
+openapi: 3.0.3
+info:
+  title: MCP Server API - AI-Powered Todo Chatbot
+  description: |
+    Model Context Protocol (MCP) server for stateless todo database operations.
+    All operations require X-User-ID header for user isolation.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8001/api/v1
+    description: Local development
+  - url: https://mcp.example.com/api/v1
+    description: Production
+
+tags:
+  - name: todos
+    description: Todo CRUD operations
+  - name: health
+    description: Health check endpoints
+
+security:
+  - UserIDHeader: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Check if MCP server is healthy and database is reachable
+      tags: [health]
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  database:
+                    type: string
+                    example: connected
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /todos:
+    get:
+      summary: List todos
+      description: Retrieve todos for the authenticated user with optional filtering
+      tags: [todos]
+      parameters:
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [active, completed, deleted]
+        - name: due_date
+          in: query
+          description: Filter by due date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          description: Maximum number of results
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of todos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  todos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Todo'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Create todo
+      description: Create a new todo item for the authenticated user
+      tags: [todos]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTodoRequest'
+            examples:
+              simple:
+                summary: Simple todo
+                value:
+                  title: "buy milk"
+              with_due_date:
+                summary: Todo with due date
+                value:
+                  title: "finish report"
+                  due_date: "2025-12-20"
+                  due_time: "17:00:00"
+                  priority: "high"
+              detailed:
+                summary: Detailed todo
+                value:
+                  title: "plan vacation"
+                  description: "Research destinations, book flights, reserve hotel"
+                  due_date: "2025-12-31"
+                  tags: ["personal", "travel"]
+      responses:
+        '201':
+          description: Todo created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /todos/{todo_id}:
+    parameters:
+      - name: todo_id
+        in: path
+        required: true
+        description: UUID of the todo
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get todo by ID
+      description: Retrieve a specific todo (must belong to authenticated user)
+      tags: [todos]
+      responses:
+        '200':
+          description: Todo details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update todo
+      description: Update an existing todo (must belong to authenticated user)
+      tags: [todos]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTodoRequest'
+            examples:
+              update_due_date:
+                summary: Update due date
+                value:
+                  due_date: "2025-12-25"
+              update_title:
+                summary: Update title and priority
+                value:
+                  title: "buy milk and bread"
+                  priority: "high"
+      responses:
+        '200':
+          description: Todo updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete todo (soft delete)
+      description: Soft delete a todo (sets status to 'deleted')
+      tags: [todos]
+      responses:
+        '204':
+          description: Todo deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /todos/{todo_id}/complete:
+    parameters:
+      - name: todo_id
+        in: path
+        required: true
+        description: UUID of the todo
+        schema:
+          type: string
+          format: uuid
+
+    post:
+      summary: Mark todo as completed
+      description: Mark a todo as completed (sets status and completed_at timestamp)
+      tags: [todos]
+      responses:
+        '200':
+          description: Todo marked as completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    UserIDHeader:
+      type: apiKey
+      in: header
+      name: X-User-ID
+      description: User UUID extracted from JWT by backend (set by orchestrator)
+
+  schemas:
+    Todo:
+      type: object
+      required:
+        - id
+        - user_id
+        - title
+        - status
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique todo identifier
+          example: "650e8400-e29b-41d4-a716-446655440001"
+        user_id:
+          type: string
+          format: uuid
+          description: Owner user ID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Todo title
+          example: "buy milk"
+        description:
+          type: string
+          maxLength: 5000
+          nullable: true
+          description: Optional detailed description
+          example: "Get 2 gallons of whole milk from grocery store"
+        due_date:
+          type: string
+          format: date
+          nullable: true
+          description: Due date (YYYY-MM-DD)
+          example: "2025-12-20"
+        due_time:
+          type: string
+          format: time
+          nullable: true
+          description: Due time (HH:MM:SS)
+          example: "17:00:00"
+        status:
+          type: string
+          enum: [active, completed, deleted]
+          description: Current status
+          example: "active"
+        priority:
+          type: string
+          enum: [low, medium, high]
+          description: Priority level
+          example: "medium"
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags
+          example: ["shopping", "groceries"]
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2025-12-17T14:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-12-17T14:30:00Z"
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Completion timestamp (null if not completed)
+          example: null
+
+    CreateTodoRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Todo title (extracted from natural language)
+          example: "buy milk"
+        description:
+          type: string
+          maxLength: 5000
+          description: Optional description
+          example: "Get 2 gallons of whole milk"
+        due_date:
+          type: string
+          format: date
+          description: Due date (YYYY-MM-DD)
+          example: "2025-12-20"
+        due_time:
+          type: string
+          format: time
+          description: Due time (HH:MM:SS)
+          example: "17:00:00"
+        priority:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+          description: Priority level
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags
+          example: ["shopping"]
+
+    UpdateTodoRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Updated title
+        description:
+          type: string
+          maxLength: 5000
+          nullable: true
+          description: Updated description
+        due_date:
+          type: string
+          format: date
+          nullable: true
+          description: Updated due date
+        due_time:
+          type: string
+          format: time
+          nullable: true
+          description: Updated due time
+        status:
+          type: string
+          enum: [active, completed, deleted]
+          description: Updated status
+        priority:
+          type: string
+          enum: [low, medium, high]
+          description: Updated priority
+        tags:
+          type: array
+          items:
+            type: string
+          description: Updated tags
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "UNAUTHORIZED"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "X-User-ID header is required"
+        details:
+          type: object
+          description: Additional error details
+          example: {}
+
+  responses:
+    BadRequest:
+      description: Bad request (validation error)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "VALIDATION_ERROR"
+            message: "Title is required and must be 1-200 characters"
+            details:
+              field: "title"
+              constraint: "minLength"
+
+    Unauthorized:
+      description: Unauthorized (missing or invalid X-User-ID header)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "UNAUTHORIZED"
+            message: "X-User-ID header is required"
+
+    NotFound:
+      description: Todo not found or does not belong to user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "NOT_FOUND"
+            message: "Todo not found or you do not have permission to access it"
