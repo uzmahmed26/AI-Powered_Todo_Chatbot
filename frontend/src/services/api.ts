@@ -125,8 +125,8 @@ class ApiClient {
    * For now, history is loaded implicitly by the backend
    */
   async getConversationHistory(
-    userId: string,
-    conversationId: number
+    _userId: string,
+    _conversationId: number
   ): Promise<any[]> {
     // Placeholder for Phase 3 User Story 3
     console.warn("Conversation history endpoint not yet implemented");

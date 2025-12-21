@@ -1,0 +1,15 @@
+{
+  "name": "phase3-smart-todo-chatkit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered conversational todo management application",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev",
+    "install": "cd frontend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
