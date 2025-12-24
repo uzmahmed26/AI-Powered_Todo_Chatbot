@@ -10,7 +10,10 @@
 
 import React, { useState, useEffect } from "react";
 import { apiClient, ChatResponse } from "../services/api";
+import { useTranslation } from "../hooks/useTranslation";
+import LanguageToggle from "../components/LanguageToggle";
 import "../styles/SmartTodoApp.css";
+import "../styles/rtl.css";
 
 // Note: OpenAI ChatKit types - install @openai/chatkit package
 // For now, using placeholder types until package is available
@@ -21,8 +24,15 @@ interface Message {
 }
 
 const SmartTodoApp: React.FC = () => {
+  // Translation hook
+  const { translateAsync, language, isRTL, getTranslations } = useTranslation();
+
+  // Get translations for current language
+  const translations = getTranslations();
+
   // State
   const [messages, setMessages] = useState<Message[]>([]);
+  const [translatedMessages, setTranslatedMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,6 +55,24 @@ const SmartTodoApp: React.FC = () => {
       localStorage.setItem("conversationId", conversationId.toString());
     }
   }, [conversationId]);
+
+  // Translate messages when language changes
+  useEffect(() => {
+    const translateMessages = async () => {
+      if (language === 'ur' && messages.length > 0) {
+        const translated = await Promise.all(
+          messages.map(async (msg) => ({
+            ...msg,
+            content: await translateAsync(msg.content),
+          }))
+        );
+        setTranslatedMessages(translated);
+      } else {
+        setTranslatedMessages(messages);
+      }
+    };
+    translateMessages();
+  }, [messages, language, translateAsync]);
 
   /**
    * Send message to API and update chat
@@ -117,17 +145,18 @@ const SmartTodoApp: React.FC = () => {
   };
 
   return (
-    <div className="smart-todo-app">
+    <div className={`smart-todo-app ${isRTL ? 'rtl' : ''}`}>
       {/* Header */}
       <header className="app-header">
-        <h1>🤖 Smart Todo Assistant</h1>
-        <p className="subtitle">Chat naturally to manage your tasks</p>
+        <LanguageToggle />
+        <h1>🤖 {translations.header.title}</h1>
+        <p className="subtitle">{translations.header.subtitle}</p>
         <button
           className="btn-new-chat"
           onClick={handleNewConversation}
-          title="Start new conversation"
+          title={translations.header.newChatTooltip}
         >
-          + New Chat
+          {translations.header.newChatButton}
         </button>
       </header>
 
@@ -137,24 +166,23 @@ const SmartTodoApp: React.FC = () => {
         <div className="messages-container">
           {messages.length === 0 && (
             <div className="welcome-message">
-              <h2>Welcome! 👋</h2>
-              <p>I'm your AI todo assistant. Try saying:</p>
+              <h2>{translations.welcome.heading} {translations.welcome.emoji}</h2>
+              <p>{translations.welcome.intro}</p>
               <ul>
-                <li>"Add buy groceries to my tasks"</li>
-                <li>"Remind me to call mom tomorrow"</li>
-                <li>"Show my tasks"</li>
-                <li>"Mark buy groceries as done"</li>
+                {translations.welcome.examples.map((example: string, index: number) => (
+                  <li key={index}>{example}</li>
+                ))}
               </ul>
             </div>
           )}
 
-          {messages.map((msg, index) => (
+          {translatedMessages.map((msg, index) => (
             <div
               key={index}
               className={`message ${msg.role === "user" ? "user-message" : "assistant-message"}`}
             >
               <div className="message-avatar">
-                {msg.role === "user" ? "👤" : "🤖"}
+                {msg.role === "user" ? translations.messages.userAvatar : translations.messages.assistantAvatar}
               </div>
               <div className="message-content">
                 <div className="message-text">{msg.content}</div>
@@ -170,7 +198,7 @@ const SmartTodoApp: React.FC = () => {
           {/* Loading indicator */}
           {isLoading && (
             <div className="message assistant-message typing-indicator">
-              <div className="message-avatar">🤖</div>
+              <div className="message-avatar">{translations.messages.assistantAvatar}</div>
               <div className="message-content">
                 <div className="typing-dots">
                   <span></span>
@@ -187,21 +215,21 @@ const SmartTodoApp: React.FC = () => {
           <input
             type="text"
             className="message-input"
-            placeholder="Type a message... (e.g., 'Add buy milk')"
+            placeholder={translations.input.placeholder}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             disabled={isLoading}
           />
           <button type="submit" className="send-button" disabled={isLoading || !inputMessage.trim()}>
-            {isLoading ? "⏳" : "Send"}
+            {isLoading ? translations.input.sendingButton : translations.input.sendButton}
           </button>
         </form>
 
         {/* Error Display */}
         {error && (
           <div className="error-banner">
-            <span>⚠️ {error}</span>
-            <button onClick={() => setError(null)}>✕</button>
+            <span>{translations.errors.prefix} {error}</span>
+            <button onClick={() => setError(null)}>{translations.errors.close}</button>
           </div>
         )}
       </div>
@@ -210,9 +238,9 @@ const SmartTodoApp: React.FC = () => {
       <footer className="app-footer">
         <p>
           {conversationId ? (
-            <>Conversation #{conversationId}</>
+            <>{translations.footer.conversationLabel}{conversationId}</>
           ) : (
-            <>Start a new conversation</>
+            <>{translations.footer.defaultMessage}</>
           )}
         </p>
       </footer>

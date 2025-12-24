@@ -1,0 +1,126 @@
+/**
+ * RTL (Right-to-Left) Styles for Urdu Language
+ *
+ * CSS overrides for proper Urdu text flow and layout.
+ * Applied when .rtl class is added to the root element.
+ */
+
+/* Root RTL settings */
+.rtl {
+  direction: rtl;
+  text-align: right;
+  font-family: 'Noto Nastaliq Urdu', 'Segoe UI', 'Tahoma', Arial, sans-serif;
+}
+
+/* Header adjustments */
+.rtl .app-header {
+  text-align: center; /* Keep header centered */
+}
+
+/* Welcome message adjustments */
+.rtl .welcome-message {
+  text-align: center; /* Keep welcome centered */
+}
+
+.rtl .welcome-message ul {
+  text-align: right; /* Align list items to right */
+}
+
+.rtl .welcome-message li {
+  border-left: none;
+  border-right: 3px solid #ED985F; /* Flip accent border */
+}
+
+.rtl .welcome-message li:hover {
+  transform: translateX(-4px); /* Flip hover animation */
+  border-right-color: #F7B980;
+}
+
+/* Message bubbles - Flip user and assistant positions */
+.rtl .user-message {
+  flex-direction: row; /* Reverse from row-reverse */
+}
+
+.rtl .assistant-message {
+  flex-direction: row-reverse; /* Reverse from row */
+}
+
+.rtl .user-message .message-content {
+  margin-left: 0;
+  margin-right: auto;
+  align-items: flex-start; /* Align to right in RTL */
+}
+
+.rtl .assistant-message .message-content {
+  align-items: flex-end; /* Align to left in RTL */
+}
+
+/* Message bubble border radius - Flip corners */
+.rtl .user-message .message-text {
+  border-bottom-right-radius: 16px; /* Reset */
+  border-bottom-left-radius: 6px; /* Flip to left corner */
+}
+
+.rtl .assistant-message .message-text {
+  border-bottom-left-radius: 16px; /* Reset */
+  border-bottom-right-radius: 6px; /* Flip to right corner */
+}
+
+/* Input form - RTL text alignment */
+.rtl .message-input {
+  text-align: right;
+  direction: rtl;
+}
+
+.rtl .message-input::placeholder {
+  text-align: right;
+}
+
+/* Button positions - Flip new chat button */
+.rtl .btn-new-chat {
+  right: auto;
+  left: 2.5rem;
+}
+
+/* Error banner adjustments */
+.rtl .error-banner {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Footer adjustments */
+.rtl .app-footer {
+  text-align: center; /* Keep footer centered */
+}
+
+/* Timestamp alignment */
+.rtl .message-timestamp {
+  text-align: right;
+}
+
+/* Typing indicator */
+.rtl .typing-dots {
+  direction: ltr; /* Keep dots left-to-right */
+}
+
+/* Scrollbar position (for webkit browsers) */
+.rtl .messages-container::-webkit-scrollbar {
+  left: 0;
+  right: auto;
+}
+
+/* Ensure numbers and English words remain LTR within RTL text */
+.rtl .message-text {
+  unicode-bidi: plaintext; /* Smart bidirectional text handling */
+}
+
+/* Responsive adjustments for RTL */
+@media (max-width: 768px) {
+  .rtl .btn-new-chat {
+    left: 1rem;
+  }
+
+  .rtl .language-toggle {
+    right: 1rem;
+  }
+}

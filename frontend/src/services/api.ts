@@ -5,6 +5,7 @@
  */
 
 import axios, { AxiosInstance, AxiosError } from "axios";
+import { translations } from "../locales/en";
 
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -160,35 +161,29 @@ class ApiClient {
 
         switch (statusCode) {
           case 400:
-            throw new Error(errorData.detail || "Invalid request. Please check your input.");
+            throw new Error(errorData.detail || translations.errors.invalidRequest);
           case 403:
-            throw new Error("You don't have permission to access this conversation.");
+            throw new Error(translations.errors.permission);
           case 404:
-            throw new Error("Resource not found.");
+            throw new Error(translations.errors.notFound);
           case 503:
-            throw new Error(
-              "Service is currently unavailable. Please try again in a moment."
-            );
+            throw new Error(translations.errors.serviceUnavailable);
           case 504:
-            throw new Error("Request timed out. Please try again.");
+            throw new Error(translations.errors.timeout);
           default:
-            throw new Error(
-              errorData.detail || "An error occurred. Please try again."
-            );
+            throw new Error(errorData.detail || translations.errors.generic);
         }
       } else if (axiosError.request) {
         // Request made but no response
-        throw new Error(
-          "Unable to reach the server. Please check your connection."
-        );
+        throw new Error(translations.errors.network);
       } else {
         // Request setup error
-        throw new Error("Failed to send request. Please try again.");
+        throw new Error(translations.errors.requestSetupFailed);
       }
     }
 
     // Unknown error type
-    throw new Error("An unexpected error occurred.");
+    throw new Error(translations.errors.unexpected);
   }
 }
 
