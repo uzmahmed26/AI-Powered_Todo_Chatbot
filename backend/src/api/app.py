@@ -81,10 +81,10 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
-# Configure middleware
-configure_cors(app)
+# Configure middleware (CORS must be last to execute first)
 configure_error_handlers(app)
 app.add_middleware(LoggingMiddleware)
+configure_cors(app)  # Add CORS last so it executes first
 
 logger.info("Middleware configured")
 

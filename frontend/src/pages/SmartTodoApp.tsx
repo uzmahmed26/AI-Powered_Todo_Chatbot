@@ -12,6 +12,7 @@ import React, { useState, useEffect } from "react";
 import { apiClient, ChatResponse } from "../services/api";
 import { useTranslation } from "../hooks/useTranslation";
 import LanguageToggle from "../components/LanguageToggle";
+import VoiceInputButton from "../components/VoiceInputButton";
 import "../styles/SmartTodoApp.css";
 import "../styles/rtl.css";
 
@@ -37,6 +38,7 @@ const SmartTodoApp: React.FC = () => {
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
 
   // Hardcoded user ID for MVP (will be replaced with Better Auth in Phase 6)
   const userId = "demo-user";
@@ -144,6 +146,13 @@ const SmartTodoApp: React.FC = () => {
     setError(null);
   };
 
+  /**
+   * Handle voice input transcript
+   */
+  const handleVoiceTranscript = (transcript: string) => {
+    setInputMessage(transcript);
+  };
+
   return (
     <div className={`smart-todo-app ${isRTL ? 'rtl' : ''}`}>
       {/* Header */}
@@ -215,9 +224,14 @@ const SmartTodoApp: React.FC = () => {
           <input
             type="text"
             className="message-input"
-            placeholder={translations.input.placeholder}
+            placeholder={isVoiceListening ? "🎤 Listening... Speak now!" : translations.input.placeholder}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
+            disabled={isLoading}
+          />
+          <VoiceInputButton
+            onTranscript={handleVoiceTranscript}
+            onListeningChange={setIsVoiceListening}
             disabled={isLoading}
           />
           <button type="submit" className="send-button" disabled={isLoading || !inputMessage.trim()}>
