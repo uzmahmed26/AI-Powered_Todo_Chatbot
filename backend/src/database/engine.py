@@ -29,9 +29,13 @@ if not DATABASE_URL:
 # Note: Neon Serverless PostgreSQL works well with connection pooling
 # Disable prepared statement cache to avoid schema change issues
 connect_args = {
-    "ssl": "require",
     "prepared_statement_cache_size": 0,  # Disable prepared statement cache
 }
+
+# Only require SSL for production (cloud deployments like Neon)
+if os.getenv("ENVIRONMENT") != "development":
+    connect_args["ssl"] = "require"
+
 async_engine: AsyncEngine = create_async_engine(
     DATABASE_URL,
     echo=os.getenv("APP_ENV") == "development",  # Log SQL in development

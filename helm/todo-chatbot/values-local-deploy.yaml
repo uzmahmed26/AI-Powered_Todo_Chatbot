@@ -1,0 +1,71 @@
+# ============================================================================
+# Helm Values for Local Minikube Deployment - Actual Deployment
+# ============================================================================
+# Usage: helm install todo-chatbot ./helm/todo-chatbot -f ./helm/todo-chatbot/values-local-deploy.yaml
+# ============================================================================
+
+global:
+  environment: local
+  imageRegistry: ""
+
+backend:
+  replicaCount: 1
+  image:
+    repository: todo-chatbot-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # Secrets - IMPORTANT: Replace with your actual values before deploying
+  secrets:
+    databaseUrl: "postgresql+asyncpg://postgres:postgres@postgres:5432/todo_chatbot"
+    openaiApiKey: "your-openai-api-key-here"  # Replace with actual OpenAI API key
+
+  env:
+    ENVIRONMENT: development
+    APP_ENV: development
+    CORS_ORIGINS: "http://localhost,http://localhost:5173,http://localhost:30080,http://frontend"
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: todo-chatbot-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: NodePort
+    nodePort: 30080
+
+postgresql:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 1Gi
+  auth:
+    postgresPassword: postgres
+    database: todo_chatbot
+
+redis:
+  enabled: true
+
+dapr:
+  enabled: true
+  pubsub:
+    type: pubsub.redis
+
+kafka:
+  enabled: false
+
+ingress:
+  enabled: false
+
+autoscaling:
+  enabled: false

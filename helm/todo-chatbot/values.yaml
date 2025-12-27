@@ -1,0 +1,261 @@
+# ============================================================================
+# Helm Chart Values for AI-Powered Todo Chatbot
+# ============================================================================
+# Default values for todo-chatbot chart
+# This is a YAML-formatted file
+# Declare variables to be passed into your templates
+# ============================================================================
+
+# Global settings
+global:
+  environment: development  # development, staging, production
+  imageRegistry: ""  # Your container registry (e.g., docker.io, ghcr.io)
+
+# ============================================================================
+# Backend Configuration
+# ============================================================================
+backend:
+  enabled: true
+  name: backend
+  replicaCount: 1
+
+  image:
+    repository: todo-chatbot-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  # Environment variables (non-sensitive)
+  env:
+    ENVIRONMENT: development
+    LOG_LEVEL: info
+    CORS_ORIGINS: "http://localhost,http://localhost:5173,http://frontend"
+    DB_POOL_SIZE: "10"
+    DB_MAX_OVERFLOW: "20"
+    API_PREFIX: "/api"
+
+  # Secrets (will be created from values or external secret manager)
+  secrets:
+    databaseUrl: "postgresql://postgres:postgres@postgres:5432/todo_chatbot"
+    openaiApiKey: "sk-proj-your-key-here"  # REPLACE WITH ACTUAL KEY
+
+  # Dapr configuration
+  dapr:
+    enabled: true
+    appId: backend
+    appPort: 8000
+    logLevel: info
+
+  # Probes
+  livenessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+
+  readinessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 5
+
+# ============================================================================
+# Frontend Configuration
+# ============================================================================
+frontend:
+  enabled: true
+  name: frontend
+  replicaCount: 1
+
+  image:
+    repository: todo-chatbot-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: NodePort  # Change to LoadBalancer for cloud
+    port: 80
+    targetPort: 80
+    nodePort: 30080  # For Minikube access
+
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+
+  env:
+    BACKEND_URL: "http://backend:8000"
+    API_ENDPOINT: "/api"
+    APP_NAME: "AI-Powered Todo Chatbot"
+    APP_VERSION: "1.0.0"
+
+  dapr:
+    enabled: true
+    appId: frontend
+    appPort: 80
+
+# ============================================================================
+# PostgreSQL Configuration
+# ============================================================================
+postgresql:
+  enabled: true
+  name: postgres
+  replicaCount: 1
+
+  image:
+    repository: postgres
+    tag: 15-alpine
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 5432
+
+  # Database configuration
+  database: todo_chatbot
+  username: postgres
+  password: postgres  # CHANGE IN PRODUCTION
+
+  # Persistence
+  persistence:
+    enabled: true
+    size: 1Gi
+    # storageClass: ""  # Use default storage class
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# ============================================================================
+# Redis Configuration (for Dapr)
+# ============================================================================
+redis:
+  enabled: true
+  name: redis-master
+  replicaCount: 1
+
+  image:
+    repository: redis
+    tag: 7-alpine
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 6379
+
+  password: redis123  # CHANGE IN PRODUCTION
+
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+
+# ============================================================================
+# Dapr Components
+# ============================================================================
+dapr:
+  enabled: true
+
+  # State store component
+  statestore:
+    enabled: true
+    type: state.redis
+    redisHost: redis-master:6379
+
+  # Pub/Sub component
+  pubsub:
+    enabled: true
+    type: pubsub.redis  # Use pubsub.kafka for production
+    redisHost: redis-master:6379
+
+# ============================================================================
+# Kafka Configuration (Phase V - Production)
+# ============================================================================
+kafka:
+  enabled: false  # Set to true for Phase V
+
+  zookeeper:
+    enabled: false
+    image:
+      repository: confluentinc/cp-zookeeper
+      tag: 7.5.0
+    service:
+      port: 2181
+
+  broker:
+    enabled: false
+    image:
+      repository: confluentinc/cp-kafka
+      tag: 7.5.0
+    service:
+      port: 9092
+    replicaCount: 1
+
+# ============================================================================
+# Ingress Configuration (Optional)
+# ============================================================================
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: todo-chatbot.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+          port: 80
+  tls: []
+    # - secretName: todo-chatbot-tls
+    #   hosts:
+    #     - todo-chatbot.example.com
+
+# ============================================================================
+# Autoscaling (HPA)
+# ============================================================================
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# ============================================================================
+# Security Context
+# ============================================================================
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# ============================================================================
+# Service Account
+# ============================================================================
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}

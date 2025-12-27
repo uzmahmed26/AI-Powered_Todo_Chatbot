@@ -1,0 +1,47 @@
+{{- if .Values.frontend.enabled -}}
+# ============================================================================
+# Frontend Deployment Template
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.frontend.name }}
+  labels:
+    app: {{ .Chart.Name }}
+    component: {{ .Values.frontend.name }}
+    version: {{ .Chart.AppVersion }}
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+      component: {{ .Values.frontend.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+        component: {{ .Values.frontend.name }}
+        version: {{ .Chart.AppVersion }}
+      {{- if .Values.frontend.dapr.enabled }}
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: {{ .Values.frontend.dapr.appId | quote }}
+        dapr.io/app-port: {{ .Values.frontend.dapr.appPort | quote }}
+      {{- end }}
+    spec:
+      containers:
+      - name: {{ .Values.frontend.name }}
+        image: "{{ .Values.global.imageRegistry }}{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+        imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.frontend.service.targetPort }}
+          protocol: TCP
+        env:
+        {{- range $key, $value := .Values.frontend.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.frontend.resources | nindent 10 }}
+{{- end }}

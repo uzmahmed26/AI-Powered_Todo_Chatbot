@@ -1,0 +1,132 @@
+# ============================================================================
+# Kubernetes Deployment for Backend API
+# ============================================================================
+# Phase IV & V: Defines the backend FastAPI deployment
+# This manifest creates pods running the backend service
+# ============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: todo-chatbot
+    component: backend
+    version: v1
+spec:
+  # Number of pod replicas
+  # For local: 1, For production: 2-3 for high availability
+  replicas: 1
+
+  # Selector to match pods
+  selector:
+    matchLabels:
+      app: todo-chatbot
+      component: backend
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: todo-chatbot
+        component: backend
+        version: v1
+      annotations:
+        # Dapr annotations for service mesh
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "backend"
+        dapr.io/app-port: "8000"
+        dapr.io/log-level: "info"
+
+    spec:
+      # Security context for the pod
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+      - name: backend
+        # Docker image - update registry for cloud deployment
+        image: todo-chatbot-backend:latest
+        imagePullPolicy: IfNotPresent  # Change to Always for production
+
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+
+        # Environment variables
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: database-url
+
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: openai-api-key
+
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: environment
+
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: cors-origins
+
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: log-level
+
+        # Resource limits and requests
+        # Adjust based on your application needs
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+        # Liveness probe - checks if container is alive
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        # Readiness probe - checks if container is ready to serve traffic
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+        # Startup probe - gives app time to start
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 30
+
+      # Restart policy
+      restartPolicy: Always

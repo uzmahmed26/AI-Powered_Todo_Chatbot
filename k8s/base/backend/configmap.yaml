@@ -1,0 +1,36 @@
+# ============================================================================
+# Kubernetes ConfigMap for Backend API
+# ============================================================================
+# Phase IV & V: Non-sensitive configuration for backend
+# Stores environment-specific settings
+# ============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  labels:
+    app: todo-chatbot
+    component: backend
+data:
+  # Environment type
+  environment: "development"
+
+  # Logging configuration
+  log-level: "info"
+
+  # CORS origins - update for your frontend URLs
+  # For local: http://localhost,http://localhost:5173
+  # For cloud: https://your-domain.com
+  cors-origins: "http://localhost,http://localhost:5173,http://localhost:80,http://frontend"
+
+  # Database configuration (non-sensitive)
+  db-pool-size: "10"
+  db-max-overflow: "20"
+
+  # API configuration
+  api-prefix: "/api"
+  docs-url: "/docs"
+
+  # Rate limiting
+  rate-limit-per-minute: "60"

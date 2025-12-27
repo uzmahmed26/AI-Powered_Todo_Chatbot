@@ -1,0 +1,100 @@
+# ============================================================================
+# Kustomization for Cloud Deployment (DigitalOcean DOKS)
+# ============================================================================
+# Phase V: Aggregates all manifests for production cloud deployment
+# Usage: kubectl apply -k k8s/cloud
+# ============================================================================
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Namespace for all resources
+namespace: production
+
+# Common labels
+commonLabels:
+  environment: production
+  managed-by: kustomize
+
+# Base resources
+resources:
+  # Backend
+  - ../base/backend/deployment.yaml
+  - ../base/backend/service.yaml
+  - ../base/backend/configmap.yaml
+  - ../base/backend/secret.yaml
+
+  # Frontend
+  - ../base/frontend/deployment.yaml
+  - ../base/frontend/service.yaml
+  - ../base/frontend/configmap.yaml
+
+  # Dapr with Kafka
+  - ../base/dapr/statestore.yaml
+  - ./dapr/pubsub-kafka.yaml
+  - ../base/dapr/redis-deployment.yaml
+
+  # Kafka
+  - ./kafka/kafka-deployment.yaml
+
+# ConfigMap generator for production values
+configMapGenerator:
+  - name: cloud-config
+    literals:
+      - ENVIRONMENT=production
+      - DEBUG=false
+
+# Patches for production configurations
+patchesStrategicMerge:
+  # Backend: increase replicas and resources
+  - |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: backend
+    spec:
+      replicas: 3
+      template:
+        spec:
+          containers:
+          - name: backend
+            imagePullPolicy: Always
+            resources:
+              requests:
+                memory: "512Mi"
+                cpu: "500m"
+              limits:
+                memory: "1Gi"
+                cpu: "1000m"
+
+  # Frontend: increase replicas and use LoadBalancer
+  - |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: frontend
+    spec:
+      replicas: 2
+      template:
+        spec:
+          containers:
+          - name: frontend
+            imagePullPolicy: Always
+
+  # Frontend service: change to LoadBalancer
+  - |-
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: frontend
+    spec:
+      type: LoadBalancer
+
+# Image transformations - update with your container registry
+images:
+  - name: todo-chatbot-backend
+    newName: your-registry.com/todo-chatbot-backend
+    newTag: latest
+  - name: todo-chatbot-frontend
+    newName: your-registry.com/todo-chatbot-frontend
+    newTag: latest

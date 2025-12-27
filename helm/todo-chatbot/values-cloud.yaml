@@ -1,0 +1,75 @@
+# ============================================================================
+# Helm Values for Cloud Deployment - Phase V (DigitalOcean DOKS)
+# ============================================================================
+# Usage: helm install todo-chatbot ./helm/todo-chatbot -f ./helm/todo-chatbot/values-cloud.yaml
+# ============================================================================
+
+global:
+  environment: production
+  imageRegistry: "your-registry.com/"  # REPLACE with your container registry
+
+backend:
+  replicaCount: 3
+  image:
+    pullPolicy: Always
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  env:
+    ENVIRONMENT: production
+    LOG_LEVEL: warning
+
+frontend:
+  replicaCount: 2
+  service:
+    type: LoadBalancer  # Get external IP from cloud provider
+  image:
+    pullPolicy: Always
+
+postgresql:
+  enabled: false  # Use managed database in production
+  # Update backend secrets to point to managed database URL
+
+redis:
+  enabled: true
+  replicaCount: 1
+
+dapr:
+  enabled: true
+  pubsub:
+    type: pubsub.kafka  # Use Kafka for production
+
+kafka:
+  enabled: true
+  broker:
+    enabled: true
+    replicaCount: 1  # Increase for production
+  zookeeper:
+    enabled: true
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: todo-chatbot.yourdomain.com  # REPLACE with your domain
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+          port: 80
+  tls:
+    - secretName: todo-chatbot-tls
+      hosts:
+        - todo-chatbot.yourdomain.com
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70

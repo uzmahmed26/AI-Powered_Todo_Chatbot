@@ -1,0 +1,39 @@
+# ============================================================================
+# Dapr Pub/Sub Component
+# ============================================================================
+# Phase IV: Redis pub/sub for local development
+# Phase V: Kafka pub/sub for cloud production
+# ============================================================================
+
+# For Phase IV (Local - Redis)
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub
+  namespace: default
+spec:
+  type: pubsub.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: redis-master:6379
+  - name: redisPassword
+    secretKeyRef:
+      name: redis-secrets
+      key: redis-password
+  - name: enableTLS
+    value: "false"
+
+---
+# ============================================================================
+# Subscription Configuration for Todo Events
+# ============================================================================
+apiVersion: dapr.io/v1alpha1
+kind: Subscription
+metadata:
+  name: todo-events-subscription
+  namespace: default
+spec:
+  topic: todo-events
+  route: /events/todo
+  pubsubname: pubsub

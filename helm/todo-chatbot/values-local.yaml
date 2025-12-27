@@ -1,0 +1,50 @@
+# ============================================================================
+# Helm Values for Local Minikube Deployment (Phase IV)
+# ============================================================================
+# Usage: helm install todo-chatbot ./helm/todo-chatbot -f ./helm/todo-chatbot/values-local.yaml
+# ============================================================================
+
+global:
+  environment: local
+  imageRegistry: ""
+
+backend:
+  replicaCount: 1
+  image:
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+frontend:
+  replicaCount: 1
+  service:
+    type: NodePort
+    nodePort: 30080
+
+postgresql:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 1Gi
+
+redis:
+  enabled: true
+
+dapr:
+  enabled: true
+  pubsub:
+    type: pubsub.redis
+
+kafka:
+  enabled: false
+
+ingress:
+  enabled: false
+
+autoscaling:
+  enabled: false

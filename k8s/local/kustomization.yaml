@@ -1,0 +1,76 @@
+# ============================================================================
+# Kustomization for Local Minikube Deployment
+# ============================================================================
+# Phase IV: Aggregates all base manifests for local deployment
+# Usage: kubectl apply -k k8s/local
+# ============================================================================
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Namespace for all resources
+namespace: default
+
+# Common labels applied to all resources
+commonLabels:
+  environment: local
+  managed-by: kustomize
+
+# Base resources
+resources:
+  # Backend
+  - ../base/backend/deployment.yaml
+  - ../base/backend/service.yaml
+  - ../base/backend/configmap.yaml
+  - ../base/backend/secret.yaml
+
+  # Frontend
+  - ../base/frontend/deployment.yaml
+  - ../base/frontend/service.yaml
+  - ../base/frontend/configmap.yaml
+
+  # Database
+  - ../base/postgres/deployment.yaml
+  - ../base/postgres/service.yaml
+  - ../base/postgres/configmap.yaml
+  - ../base/postgres/secret.yaml
+  - ../base/postgres/pvc.yaml
+
+  # Dapr components
+  - ../base/dapr/statestore.yaml
+  - ../base/dapr/pubsub.yaml
+  - ../base/dapr/redis-deployment.yaml
+
+# ConfigMap generator for environment-specific values
+configMapGenerator:
+  - name: local-config
+    literals:
+      - ENVIRONMENT=local
+      - DEBUG=true
+
+# Patches for local-specific configurations
+patchesStrategicMerge:
+  - |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: backend
+    spec:
+      replicas: 1
+      template:
+        spec:
+          containers:
+          - name: backend
+            imagePullPolicy: IfNotPresent
+  - |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: frontend
+    spec:
+      replicas: 1
+      template:
+        spec:
+          containers:
+          - name: frontend
+            imagePullPolicy: IfNotPresent

@@ -1,0 +1,28 @@
+# ============================================================================
+# Kubernetes PersistentVolumeClaim for PostgreSQL
+# ============================================================================
+# Phase IV: Storage for database data
+# This ensures data persists even if pods are deleted
+# ============================================================================
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  labels:
+    app: todo-chatbot
+    component: database
+spec:
+  # Access mode
+  accessModes:
+    - ReadWriteOnce  # Can be mounted by single node
+
+  # Storage class
+  # For Minikube: use default storage class
+  # For cloud: specify appropriate storage class
+  # storageClassName: standard  # Uncomment and set for specific storage class
+
+  # Storage size
+  resources:
+    requests:
+      storage: 1Gi  # Adjust based on your needs

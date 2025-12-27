@@ -1,0 +1,25 @@
+# ============================================================================
+# Kubernetes Service for PostgreSQL
+# ============================================================================
+# Phase IV: Internal database service
+# ============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: todo-chatbot
+    component: database
+spec:
+  type: ClusterIP
+
+  selector:
+    app: todo-chatbot
+    component: database
+
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: 5432
+    protocol: TCP

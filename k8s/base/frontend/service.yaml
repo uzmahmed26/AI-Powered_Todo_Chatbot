@@ -1,0 +1,39 @@
+# ============================================================================
+# Kubernetes Service for Frontend
+# ============================================================================
+# Phase IV & V: Exposes the frontend pods
+# For local (Minikube): Use NodePort
+# For cloud: Use LoadBalancer
+# ============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: todo-chatbot
+    component: frontend
+spec:
+  # Service type
+  # NodePort: For local Minikube access
+  # LoadBalancer: For cloud deployments with external IP
+  type: NodePort
+
+  # Selector to match frontend pods
+  selector:
+    app: todo-chatbot
+    component: frontend
+
+  # Ports configuration
+  ports:
+  - name: http
+    port: 80          # Service port
+    targetPort: 80    # Container port
+    nodePort: 30080   # External port for NodePort (30000-32767)
+    protocol: TCP
+
+  # For LoadBalancer type in cloud (comment out nodePort above)
+  # - name: http
+  #   port: 80
+  #   targetPort: 80
+  #   protocol: TCP

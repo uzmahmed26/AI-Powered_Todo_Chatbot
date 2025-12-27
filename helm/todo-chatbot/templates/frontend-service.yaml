@@ -1,0 +1,25 @@
+{{- if .Values.frontend.enabled -}}
+# ============================================================================
+# Frontend Service Template
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.frontend.name }}
+  labels:
+    app: {{ .Chart.Name }}
+    component: {{ .Values.frontend.name }}
+spec:
+  type: {{ .Values.frontend.service.type }}
+  ports:
+  - name: http
+    port: {{ .Values.frontend.service.port }}
+    targetPort: {{ .Values.frontend.service.targetPort }}
+    {{- if eq .Values.frontend.service.type "NodePort" }}
+    nodePort: {{ .Values.frontend.service.nodePort }}
+    {{- end }}
+    protocol: TCP
+  selector:
+    app: {{ .Chart.Name }}
+    component: {{ .Values.frontend.name }}
+{{- end }}

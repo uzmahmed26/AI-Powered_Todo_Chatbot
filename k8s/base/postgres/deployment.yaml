@@ -1,0 +1,103 @@
+# ============================================================================
+# Kubernetes Deployment for PostgreSQL Database
+# ============================================================================
+# Phase IV: Local development database
+# For production, use managed database service (AWS RDS, GCP Cloud SQL, etc.)
+# ============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app: todo-chatbot
+    component: database
+spec:
+  # Only 1 replica for database (use StatefulSet for production)
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: todo-chatbot
+      component: database
+
+  template:
+    metadata:
+      labels:
+        app: todo-chatbot
+        component: database
+
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+
+        ports:
+        - name: postgres
+          containerPort: 5432
+          protocol: TCP
+
+        # Environment variables
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: postgres-db
+
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: postgres-user
+
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: postgres-password
+
+        # Volume mount for persistent data
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+          subPath: postgres
+
+        # Resource limits
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+        # Liveness probe
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        # Readiness probe
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+      # Volume for persistent storage
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc

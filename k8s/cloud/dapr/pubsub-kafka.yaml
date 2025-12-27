@@ -1,0 +1,65 @@
+# ============================================================================
+# Dapr Pub/Sub Component - Kafka (Production)
+# ============================================================================
+# Phase V: Kafka pub/sub for cloud deployment
+# Replace Redis pub/sub with Kafka for production
+# ============================================================================
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+  # Kafka broker addresses
+  - name: brokers
+    value: "kafka-broker:9092"
+
+  # Authentication (if using SASL)
+  - name: authType
+    value: "none"  # Change to "password" for SASL
+
+  # For SASL authentication, uncomment below:
+  # - name: saslUsername
+  #   secretKeyRef:
+  #     name: kafka-secrets
+  #     key: username
+  # - name: saslPassword
+  #   secretKeyRef:
+  #     name: kafka-secrets
+  #     key: password
+
+  # Consumer group ID
+  - name: consumerGroup
+    value: "todo-chatbot-group"
+
+  # Client ID
+  - name: clientID
+    value: "todo-chatbot-backend"
+
+  # TLS configuration
+  - name: skipVerify
+    value: "true"  # Set to false in production with proper certs
+
+  # Performance tuning
+  - name: maxMessageBytes
+    value: "1048576"  # 1MB
+
+---
+# ============================================================================
+# Subscription for Todo Events (Kafka)
+# ============================================================================
+apiVersion: dapr.io/v1alpha1
+kind: Subscription
+metadata:
+  name: todo-events-subscription-kafka
+  namespace: default
+spec:
+  topic: todo-events
+  route: /events/todo
+  pubsubname: pubsub
+  metadata:
+    rawPayload: "false"

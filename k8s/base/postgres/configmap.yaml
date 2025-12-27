@@ -1,0 +1,16 @@
+# ============================================================================
+# Kubernetes ConfigMap for PostgreSQL
+# ============================================================================
+# Phase IV: Non-sensitive database configuration
+# ============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  labels:
+    app: todo-chatbot
+    component: database
+data:
+  # Database name
+  postgres-db: "todo_chatbot"

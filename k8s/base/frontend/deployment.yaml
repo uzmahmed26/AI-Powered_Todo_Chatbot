@@ -1,0 +1,96 @@
+# ============================================================================
+# Kubernetes Deployment for Frontend
+# ============================================================================
+# Phase IV & V: Defines the frontend React application deployment
+# This manifest creates pods running the Nginx server with React SPA
+# ============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: todo-chatbot
+    component: frontend
+    version: v1
+spec:
+  # Number of pod replicas
+  # For local: 1, For production: 2-3 for high availability
+  replicas: 1
+
+  # Selector to match pods
+  selector:
+    matchLabels:
+      app: todo-chatbot
+      component: frontend
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: todo-chatbot
+        component: frontend
+        version: v1
+      annotations:
+        # Dapr annotations (optional for frontend)
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "frontend"
+        dapr.io/app-port: "80"
+
+    spec:
+      containers:
+      - name: frontend
+        # Docker image - update registry for cloud deployment
+        image: todo-chatbot-frontend:latest
+        imagePullPolicy: IfNotPresent  # Change to Always for production
+
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+
+        # Environment variables (if needed)
+        env:
+        - name: BACKEND_URL
+          valueFrom:
+            configMapKeyRef:
+              name: frontend-config
+              key: backend-url
+
+        - name: API_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: frontend-config
+              key: api-endpoint
+
+        # Resource limits and requests
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+
+        # Liveness probe
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        # Readiness probe
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+      # Restart policy
+      restartPolicy: Always

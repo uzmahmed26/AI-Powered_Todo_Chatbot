@@ -1,0 +1,28 @@
+# ============================================================================
+# Kubernetes ConfigMap for Frontend
+# ============================================================================
+# Phase IV & V: Configuration for frontend application
+# ============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  labels:
+    app: todo-chatbot
+    component: frontend
+data:
+  # Backend service URL (internal Kubernetes service)
+  backend-url: "http://backend:8000"
+
+  # API endpoint for frontend to call
+  # In Nginx config, /api/ requests are proxied to backend
+  api-endpoint: "/api"
+
+  # Application configuration
+  app-name: "AI-Powered Todo Chatbot"
+  app-version: "1.0.0"
+
+  # Feature flags
+  enable-analytics: "false"
+  enable-debug: "true"

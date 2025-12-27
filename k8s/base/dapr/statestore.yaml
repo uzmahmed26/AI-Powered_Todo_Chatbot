@@ -1,0 +1,31 @@
+# ============================================================================
+# Dapr State Store Component
+# ============================================================================
+# Phase IV & V: Redis state store for Dapr
+# Used for managing application state across services
+# ============================================================================
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+  namespace: default
+spec:
+  type: state.redis
+  version: v1
+  metadata:
+  # Redis connection settings
+  - name: redisHost
+    value: redis-master:6379
+  - name: redisPassword
+    secretKeyRef:
+      name: redis-secrets
+      key: redis-password
+  # Enable strong consistency
+  - name: enableTLS
+    value: "false"
+  # Connection pool size
+  - name: maxRetries
+    value: "3"
+  - name: maxRetryBackoff
+    value: "2s"

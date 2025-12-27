@@ -1,0 +1,22 @@
+{{- if .Values.backend.enabled -}}
+# ============================================================================
+# Backend Service Template
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.backend.name }}
+  labels:
+    app: {{ .Chart.Name }}
+    component: {{ .Values.backend.name }}
+spec:
+  type: {{ .Values.backend.service.type }}
+  ports:
+  - name: http
+    port: {{ .Values.backend.service.port }}
+    targetPort: {{ .Values.backend.service.targetPort }}
+    protocol: TCP
+  selector:
+    app: {{ .Chart.Name }}
+    component: {{ .Values.backend.name }}
+{{- end }}
