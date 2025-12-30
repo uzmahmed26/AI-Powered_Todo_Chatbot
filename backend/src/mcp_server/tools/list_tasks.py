@@ -13,6 +13,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from ...models.task import Task
 from ...database.engine import async_session_maker
 from ..schemas import ListTasksInput, ListTasksOutput, TaskData, MCPErrorResponse
+from ...utils.recurrence import calculate_next_due_date
 
 logger = logging.getLogger(__name__)
 
@@ -144,6 +145,19 @@ async def execute(
             # Build response data
             task_list = []
             for task in tasks:
+                # Calculate next recurrence date if task is recurring and not completed
+                next_recurrence = None
+                if task.is_recurring and task.recurrence_pattern and not task.completed:
+                    try:
+                        next_recurrence_date = calculate_next_due_date(
+                            current_due_date=task.due_date,
+                            recurrence_pattern=task.recurrence_pattern,
+                            recurrence_interval=task.recurrence_interval,
+                        )
+                        next_recurrence = next_recurrence_date.isoformat()
+                    except Exception as e:
+                        logger.warning(f"Failed to calculate next recurrence for task {task.id}: {e}")
+
                 task_list.append({
                     "task_id": task.id,
                     "title": task.title,
@@ -154,6 +168,9 @@ async def execute(
                     "due_date": task.due_date.isoformat() if task.due_date else None,
                     "created_at": task.created_at.isoformat() if task.created_at else None,
                     "updated_at": task.updated_at.isoformat() if task.updated_at else None,
+                    "is_recurring": task.is_recurring,
+                    "recurrence_pattern": task.recurrence_pattern,
+                    "next_recurrence": next_recurrence,
                 })
 
             # Friendly message

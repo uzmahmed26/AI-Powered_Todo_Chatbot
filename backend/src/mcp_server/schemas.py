@@ -26,6 +26,12 @@ class AddTaskInput(BaseModel):
     category: Optional[str] = Field(None, description="Task category")
     due_date: Optional[str] = Field(None, description="Due date in ISO format")
 
+    # Recurrence fields
+    is_recurring: bool = Field(default=False, description="Whether this task recurs")
+    recurrence_pattern: Optional[str] = Field(None, description="Recurrence pattern: daily, weekly, monthly")
+    recurrence_interval: int = Field(default=1, ge=1, description="Recurrence interval (e.g., every 2 days)")
+    recurrence_end_date: Optional[str] = Field(None, description="When recurrence should end (ISO format)")
+
     @field_validator("title")
     @classmethod
     def validate_title(cls, v: str) -> str:
@@ -61,6 +67,25 @@ class AddTaskInput(BaseModel):
                 raise ValueError("due_date must be a valid ISO datetime string")
         return v
 
+    @field_validator("recurrence_pattern")
+    @classmethod
+    def validate_recurrence_pattern(cls, v: Optional[str]) -> Optional[str]:
+        """Validate recurrence_pattern is one of the allowed values."""
+        if v is not None and v not in ["daily", "weekly", "monthly"]:
+            raise ValueError("recurrence_pattern must be one of: daily, weekly, monthly")
+        return v
+
+    @field_validator("recurrence_end_date")
+    @classmethod
+    def validate_recurrence_end_date(cls, v: Optional[str]) -> Optional[str]:
+        """Validate recurrence_end_date is a valid ISO datetime string."""
+        if v is not None:
+            try:
+                datetime.fromisoformat(v.replace('Z', '+00:00'))
+            except ValueError:
+                raise ValueError("recurrence_end_date must be a valid ISO datetime string")
+        return v
+
 
 class TaskData(BaseModel):
     """Task data returned in tool responses."""
@@ -74,6 +99,11 @@ class TaskData(BaseModel):
     due_date: Optional[str] = Field(None, description="Task due date (ISO format)")
     created_at: Optional[str] = Field(None, description="Creation timestamp")
     updated_at: Optional[str] = Field(None, description="Last update timestamp")
+
+    # Recurrence fields
+    is_recurring: bool = Field(default=False, description="Whether this task recurs")
+    recurrence_pattern: Optional[str] = Field(None, description="Recurrence pattern")
+    next_recurrence: Optional[str] = Field(None, description="Next recurrence date (if recurring)")
 
 
 class AddTaskOutput(BaseModel):

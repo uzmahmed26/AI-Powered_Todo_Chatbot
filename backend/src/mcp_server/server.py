@@ -114,9 +114,9 @@ def register_all_tools() -> MCPToolRegistry:
     Returns:
         Configured MCPToolRegistry instance
     """
-    from .tools import add_task, list_tasks
+    from .tools import add_task, list_tasks, complete_task
     # TODO: Import other tools when implemented in User Story 2
-    # from .tools import complete_task, delete_task, update_task
+    # from .tools import delete_task, update_task
 
     # Register add_task
     tool_registry.register_tool(
@@ -126,7 +126,7 @@ def register_all_tools() -> MCPToolRegistry:
             "type": "function",
             "function": {
                 "name": "add_task",
-                "description": "Create a new task for the user with priority, category, and due date",
+                "description": "Create a new task for the user with priority, category, due date, and recurrence settings",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -156,6 +156,26 @@ def register_all_tools() -> MCPToolRegistry:
                         "due_date": {
                             "type": "string",
                             "description": "Due date in ISO format (e.g., 2025-01-15T10:00:00Z). Optional.",
+                        },
+                        "is_recurring": {
+                            "type": "boolean",
+                            "description": "Whether this task repeats. Defaults to false.",
+                            "default": False,
+                        },
+                        "recurrence_pattern": {
+                            "type": "string",
+                            "enum": ["daily", "weekly", "monthly"],
+                            "description": "Recurrence pattern: daily, weekly, or monthly. Required if is_recurring is true.",
+                        },
+                        "recurrence_interval": {
+                            "type": "integer",
+                            "description": "How often to recur (e.g., every 2 days). Defaults to 1.",
+                            "default": 1,
+                            "minimum": 1,
+                        },
+                        "recurrence_end_date": {
+                            "type": "string",
+                            "description": "When recurrence should stop in ISO format. Optional.",
                         },
                     },
                     "required": ["user_id", "title"],
@@ -227,32 +247,32 @@ def register_all_tools() -> MCPToolRegistry:
         },
     )
 
-    # TODO: Register complete_task when implemented in User Story 2
-    # tool_registry.register_tool(
-    #     name="complete_task",
-    #     handler=complete_task.execute,
-    #     schema={
-    #         "type": "function",
-    #         "function": {
-    #             "name": "complete_task",
-    #             "description": "Mark a task as completed",
-    #             "parameters": {
-    #                 "type": "object",
-    #                 "properties": {
-    #                     "user_id": {
-    #                         "type": "string",
-    #                         "description": "User ID from Better Auth",
-    #                     },
-    #                     "task_id": {
-    #                         "type": "integer",
-    #                         "description": "ID of the task to complete",
-    #                     },
-    #                 },
-    #                 "required": ["user_id", "task_id"],
-    #             },
-    #         },
-    #     },
-    # )
+    # Register complete_task
+    tool_registry.register_tool(
+        name="complete_task",
+        handler=complete_task.execute,
+        schema={
+            "type": "function",
+            "function": {
+                "name": "complete_task",
+                "description": "Mark a task as completed. If the task is recurring, automatically creates the next instance based on recurrence pattern.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "user_id": {
+                            "type": "string",
+                            "description": "User ID from Better Auth",
+                        },
+                        "task_id": {
+                            "type": "integer",
+                            "description": "ID of the task to complete",
+                        },
+                    },
+                    "required": ["user_id", "task_id"],
+                },
+            },
+        },
+    )
 
     # TODO: Register delete_task when implemented in User Story 2
     # tool_registry.register_tool(

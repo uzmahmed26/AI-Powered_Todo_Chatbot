@@ -12,12 +12,14 @@ This tool:
 
 from typing import Dict, Any
 import logging
+from datetime import datetime
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from ...models.task import Task
 from ...database.engine import async_session_maker
 from ..schemas import AddTaskInput, AddTaskOutput, TaskData, MCPErrorResponse
+from ...utils.recurrence import calculate_next_due_date
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +30,17 @@ async def execute(
     description: str = None,
     priority: str = "medium",
     category: str = None,
-    due_date: str = None
+    due_date: str = None,
+    is_recurring: bool = False,
+    recurrence_pattern: str = None,
+    recurrence_interval: int = 1,
+    recurrence_end_date: str = None
 ) -> Dict[str, Any]:
     """
     Execute add_task MCP tool.
 
     Creates a new task for the specified user with title, description,
-    priority, category, and optional due date.
+    priority, category, optional due date, and recurrence settings.
 
     Args:
         user_id: User ID from JWT Auth (required for user isolation)
@@ -43,6 +49,10 @@ async def execute(
         priority: Task priority (high, medium, low) - defaults to medium
         category: Task category (work, home, study, etc.) - optional
         due_date: Due date in ISO format - optional
+        is_recurring: Whether this task recurs (default: False)
+        recurrence_pattern: Recurrence pattern: daily, weekly, monthly (optional)
+        recurrence_interval: Recurrence interval, e.g., every 2 days (default: 1)
+        recurrence_end_date: When recurrence should end in ISO format (optional)
 
     Returns:
         Dictionary with success status, task data, and message
@@ -50,11 +60,14 @@ async def execute(
     Example:
         result = await execute(
             user_id="uuid-123",
-            title="Buy groceries",
-            description="Milk, bread, eggs",
+            title="Daily standup meeting",
+            description="Team sync",
             priority="high",
-            category="shopping",
-            due_date="2025-01-15T10:00:00Z"
+            category="work",
+            due_date="2025-01-02T09:00:00Z",
+            is_recurring=True,
+            recurrence_pattern="daily",
+            recurrence_interval=1
         )
     """
     try:
@@ -71,6 +84,19 @@ async def execute(
                     "error_code": "VALIDATION_ERROR",
                 }
 
+        # Parse recurrence_end_date if provided
+        parsed_recurrence_end_date = None
+        if recurrence_end_date:
+            try:
+                parsed_recurrence_end_date = datetime.fromisoformat(recurrence_end_date.replace('Z', '+00:00'))
+            except ValueError:
+                return {
+                    "success": False,
+                    "data": None,
+                    "message": "Invalid recurrence_end_date format. Use ISO format (e.g., 2025-12-31T23:59:59Z)",
+                    "error_code": "VALIDATION_ERROR",
+                }
+
         # Validate input using Pydantic schema
         input_data = AddTaskInput(
             user_id=user_id,
@@ -79,9 +105,13 @@ async def execute(
             priority=priority,
             category=category,
             due_date=due_date,
+            is_recurring=is_recurring,
+            recurrence_pattern=recurrence_pattern,
+            recurrence_interval=recurrence_interval,
+            recurrence_end_date=recurrence_end_date,
         )
 
-        logger.info(f"Creating task for user {user_id}: '{title}' (priority={priority}, category={category})")
+        logger.info(f"Creating task for user {user_id}: '{title}' (priority={priority}, category={category}, recurring={is_recurring})")
 
         # Create database session
         async with async_session_maker() as session:
@@ -94,6 +124,11 @@ async def execute(
                 priority=input_data.priority,
                 category=input_data.category,
                 due_date=parsed_due_date,
+                is_recurring=input_data.is_recurring,
+                recurrence_pattern=input_data.recurrence_pattern,
+                recurrence_interval=input_data.recurrence_interval,
+                recurrence_end_date=parsed_recurrence_end_date,
+                recurrence_active=True if input_data.is_recurring else False,
             )
 
             # Add to database
@@ -102,6 +137,19 @@ async def execute(
             await session.refresh(new_task)
 
             logger.info(f"Task created successfully: task_id={new_task.id}")
+
+            # Calculate next recurrence date if task is recurring
+            next_recurrence = None
+            if new_task.is_recurring and new_task.recurrence_pattern:
+                try:
+                    next_recurrence_date = calculate_next_due_date(
+                        current_due_date=new_task.due_date,
+                        recurrence_pattern=new_task.recurrence_pattern,
+                        recurrence_interval=new_task.recurrence_interval,
+                    )
+                    next_recurrence = next_recurrence_date.isoformat()
+                except Exception as e:
+                    logger.warning(f"Failed to calculate next recurrence: {e}")
 
             # Build response data
             result = {
@@ -116,8 +164,11 @@ async def execute(
                     "due_date": new_task.due_date.isoformat() if new_task.due_date else None,
                     "created_at": new_task.created_at.isoformat() if new_task.created_at else None,
                     "updated_at": new_task.updated_at.isoformat() if new_task.updated_at else None,
+                    "is_recurring": new_task.is_recurring,
+                    "recurrence_pattern": new_task.recurrence_pattern,
+                    "next_recurrence": next_recurrence,
                 },
-                "message": "Task created successfully",
+                "message": "Task created successfully" + (" (recurring)" if new_task.is_recurring else ""),
             }
 
             return result

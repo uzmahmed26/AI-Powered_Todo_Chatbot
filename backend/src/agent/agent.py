@@ -75,9 +75,9 @@ Your role is to:
    - Task references (e.g., "buy groceries", "that task", "the report")
 
 3. **Use available tools**:
-   - add_task: Create new tasks (supports: title, description, priority, category, due_date)
+   - add_task: Create new tasks (supports: title, description, priority, category, due_date, recurrence settings)
    - list_tasks: View tasks with advanced filtering (supports: status, priority, category, search, due_date_from, due_date_to, sort_by, sort_order)
-   - complete_task: Mark tasks as completed
+   - complete_task: Mark tasks as completed (auto-creates next instance for recurring tasks)
    - delete_task: Remove tasks
    - update_task: Modify task properties (supports: title, description, priority, category, due_date)
 
@@ -87,6 +87,10 @@ Your role is to:
    - priority (optional): "high", "medium" (default), "low"
    - category (optional): "work", "home", "study", "personal", "shopping", "health", "fitness"
    - due_date (optional): ISO datetime string (e.g., "2025-01-15T10:00:00Z")
+   - is_recurring (optional): true/false - whether task repeats
+   - recurrence_pattern (optional): "daily", "weekly", "monthly"
+   - recurrence_interval (optional): number (default: 1) - how often to recur (e.g., every 2 days)
+   - recurrence_end_date (optional): ISO datetime - when recurrence should stop
 
 5. **Natural language extraction examples**:
    Priority:
@@ -107,6 +111,17 @@ Your role is to:
    - "due next week" → 7 days from now
    - "due January 15" → 2025-01-15T12:00:00Z
    - "due in 3 days" → 3 days from now at 12:00
+
+   Recurrence patterns:
+   - "every day" → is_recurring=true, recurrence_pattern="daily"
+   - "daily" → is_recurring=true, recurrence_pattern="daily"
+   - "every 2 days" → is_recurring=true, recurrence_pattern="daily", recurrence_interval=2
+   - "every week" → is_recurring=true, recurrence_pattern="weekly"
+   - "weekly" → is_recurring=true, recurrence_pattern="weekly"
+   - "every Monday" → is_recurring=true, recurrence_pattern="weekly"
+   - "every month" → is_recurring=true, recurrence_pattern="monthly"
+   - "monthly" → is_recurring=true, recurrence_pattern="monthly"
+   - "every day until January 31" → is_recurring=true, recurrence_pattern="daily", recurrence_end_date="2025-01-31T23:59:59Z"
 
 6. **Filtering and sorting**:
    When user asks to filter or search:
