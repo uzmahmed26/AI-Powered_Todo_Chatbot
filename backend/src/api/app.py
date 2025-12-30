@@ -59,6 +59,19 @@ async def lifespan(app: FastAPI):
         # Continue startup even if tools fail to register
         # (tools will be registered when implementations are available)
 
+    # Initialize agent skills
+    try:
+        from ..agent.client import get_async_openai_client
+        from ..skills.init_skills import init_skills
+
+        # Get OpenAI client for AI-powered skills
+        openai_client = get_async_openai_client()
+        init_skills(openai_client)
+        logger.info("Agent skills initialized successfully")
+    except Exception as e:
+        logger.warning(f"Agent skills initialization failed: {e}")
+        # Continue startup even if skills fail to initialize
+
     yield
 
     # Shutdown
@@ -125,12 +138,15 @@ async def health_check() -> JSONResponse:
 # Import and register chat router
 from .routes import chat
 from .routes import auth
+from .routes import skills
 
 app.include_router(chat.router, prefix="/api", tags=["Chat"])
 app.include_router(auth.router, prefix="/api", tags=["Authentication"])
+app.include_router(skills.router, prefix="/api/{user_id}/skills", tags=["Skills"])
 
 logger.info("Chat API route registered at /api/{user_id}/chat")
 logger.info("Auth API routes registered at /api/auth/*")
+logger.info("Skills API routes registered at /api/{user_id}/skills/*")
 
 
 # ============================================================================
