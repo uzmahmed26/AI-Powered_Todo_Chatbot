@@ -108,7 +108,7 @@ class ApiClient {
       };
 
       const response = await this.client.post<ChatResponse>(
-        `/api/${userId}/chat`,
+        `/${userId}/chat`,
         request
       );
 
