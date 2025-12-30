@@ -61,20 +61,28 @@ class ApiClient {
       },
     });
 
-    // Add request interceptor for logging (development only)
-    if (import.meta.env.DEV) {
-      this.client.interceptors.request.use(
-        (config) => {
-          console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
-          return config;
-        },
-        (error) => {
-          console.error("[API] Request error:", error);
-          return Promise.reject(error);
+    // Add token to requests
+    this.client.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
         }
-      );
 
-      // Add response interceptor for logging
+        // Log in development
+        if (import.meta.env.DEV) {
+          console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+        }
+        return config;
+      },
+      (error) => {
+        console.error("[API] Request error:", error);
+        return Promise.reject(error);
+      }
+    );
+
+    // Add response interceptor for logging (development only)
+    if (import.meta.env.DEV) {
       this.client.interceptors.response.use(
         (response) => {
           console.log(`[API] Response ${response.status}:`, response.data);
@@ -140,6 +148,67 @@ class ApiClient {
   async healthCheck(): Promise<{ status: string; service: string }> {
     try {
       const response = await this.client.get("/health");
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  /**
+   * User signup
+   */
+  async signup(email: string, password: string, fullName: string): Promise<any> {
+    try {
+      const response = await this.client.post('/auth/signup', {
+        email,
+        password,
+        full_name: fullName,
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  /**
+   * User signin
+   */
+  async signin(email: string, password: string): Promise<any> {
+    try {
+      const response = await this.client.post('/auth/signin', {
+        email,
+        password,
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  /**
+   * Refresh access token
+   */
+  async refreshToken(refreshToken: string): Promise<any> {
+    try {
+      const response = await this.client.post('/auth/refresh', {
+        refresh_token: refreshToken,
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get current user
+   */
+  async getCurrentUser(): Promise<any> {
+    try {
+      const response = await this.client.get('/auth/me');
       return response.data;
     } catch (error) {
       this.handleError(error);

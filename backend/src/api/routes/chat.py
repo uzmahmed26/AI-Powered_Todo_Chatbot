@@ -8,11 +8,14 @@ This endpoint is completely stateless - all conversation state
 is loaded from the database on each request.
 """
 
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlmodel.ext.asyncio.session import AsyncSession
 import logging
 
 from ...database.engine import get_async_session
+from ...models.user import User
+from ...auth.dependencies import get_current_active_user
 from ..models import ChatRequest, ChatResponse, ToolCall
 from ..services.chat_service import process_chat_message
 
@@ -47,11 +50,12 @@ router = APIRouter()
 async def process_chat(
     user_id: str = Path(
         ...,
-        description="User ID from Better Auth",
-        example="auth0|abc123",
+        description="User ID from JWT authentication",
+        example="uuid-string",
     ),
     request: ChatRequest = ...,
     session: AsyncSession = Depends(get_async_session),
+    current_user: Annotated[User, Depends(get_current_active_user)] = None,
 ) -> ChatResponse:
     """
     Process a chat message and return AI agent response.
@@ -102,6 +106,13 @@ async def process_chat(
         }
     """
     try:
+        # Verify user_id matches authenticated user
+        if current_user.id != user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Cannot access other user's conversations",
+            )
+
         logger.info(
             f"Chat endpoint called: user_id={user_id}, "
             f"conversation_id={request.conversation_id}"

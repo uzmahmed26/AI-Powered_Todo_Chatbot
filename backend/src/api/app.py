@@ -124,10 +124,13 @@ async def health_check() -> JSONResponse:
 
 # Import and register chat router
 from .routes import chat
+from .routes import auth
 
 app.include_router(chat.router, prefix="/api", tags=["Chat"])
+app.include_router(auth.router, prefix="/api", tags=["Authentication"])
 
 logger.info("Chat API route registered at /api/{user_id}/chat")
+logger.info("Auth API routes registered at /api/auth/*")
 
 
 # ============================================================================

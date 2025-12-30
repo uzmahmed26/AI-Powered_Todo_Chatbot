@@ -11,6 +11,7 @@
 import React, { useState, useEffect } from "react";
 import { apiClient, ChatResponse } from "../services/api";
 import { useTranslation } from "../hooks/useTranslation";
+import { useAuth } from "../context/AuthContext";
 import LanguageToggle from "../components/LanguageToggle";
 import VoiceInputButton from "../components/VoiceInputButton";
 import "../styles/SmartTodoApp.css";
@@ -25,6 +26,9 @@ interface Message {
 }
 
 const SmartTodoApp: React.FC = () => {
+  // Authentication hook
+  const { user, signout } = useAuth();
+
   // Translation hook
   const { translateAsync, language, isRTL, getTranslations } = useTranslation();
 
@@ -40,8 +44,8 @@ const SmartTodoApp: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isVoiceListening, setIsVoiceListening] = useState(false);
 
-  // Hardcoded user ID for MVP (will be replaced with Better Auth in Phase 6)
-  const userId = "demo-user";
+  // Get user ID from authenticated user
+  const userId = user?.id || "";
 
   // Load conversation ID from localStorage on mount
   useEffect(() => {
@@ -157,7 +161,28 @@ const SmartTodoApp: React.FC = () => {
     <div className={`smart-todo-app ${isRTL ? 'rtl' : ''}`}>
       {/* Header */}
       <header className="app-header">
-        <LanguageToggle />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <LanguageToggle />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+              {user?.full_name || user?.email}
+            </span>
+            <button
+              onClick={signout}
+              style={{
+                padding: '0.5rem 1rem',
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                cursor: 'pointer'
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        </div>
         <h1>🤖 {translations.header.title}</h1>
         <p className="subtitle">{translations.header.subtitle}</p>
         <button
