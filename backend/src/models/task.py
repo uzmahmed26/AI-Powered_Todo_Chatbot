@@ -77,6 +77,42 @@ class Task(SQLModel, table=True):
         description="Task due date (optional)"
     )
 
+    # RECURRENCE FIELDS
+    is_recurring: bool = Field(
+        default=False,
+        description="Whether this task recurs"
+    )
+    recurrence_pattern: Optional[str] = Field(
+        default=None,
+        description="Recurrence pattern: daily, weekly, monthly"
+    )
+    recurrence_interval: int = Field(
+        default=1,
+        description="Recurrence interval (e.g., every 2 weeks)"
+    )
+    recurrence_end_date: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True)),
+        description="When recurrence should end (optional)"
+    )
+    recurrence_day_of_week: Optional[int] = Field(
+        default=None,
+        description="Day of week for weekly recurrence (0=Monday, 6=Sunday)"
+    )
+    recurrence_day_of_month: Optional[int] = Field(
+        default=None,
+        description="Day of month for monthly recurrence (1-31)"
+    )
+    parent_recurrence_id: Optional[int] = Field(
+        default=None,
+        foreign_key="tasks.id",
+        description="Original recurring task template"
+    )
+    recurrence_active: bool = Field(
+        default=True,
+        description="Whether recurrence is active (can be paused)"
+    )
+
     created_at: datetime = Field(
         default_factory=datetime.utcnow,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
@@ -101,7 +137,10 @@ class Task(SQLModel, table=True):
                 "completed": False,
                 "priority": "high",
                 "category": "shopping",
-                "due_date": "2025-01-15T10:00:00Z"
+                "due_date": "2025-01-15T10:00:00Z",
+                "is_recurring": False,
+                "recurrence_pattern": None,
+                "recurrence_interval": 1
             }
         }
 
