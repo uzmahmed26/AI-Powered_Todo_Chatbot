@@ -14,6 +14,8 @@ import json
 from openai import AsyncOpenAI
 from .client import get_async_openai_client, get_model_config, MAX_CONTEXT_MESSAGES
 from .tool_registry import get_openai_tools, execute_tool_call
+from ..i18n.detector import LanguageDetector
+from ..i18n.translator import TranslationService
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +49,7 @@ class TodoAgent:
         self.client: Optional[AsyncOpenAI] = None
         self.model_config = get_model_config()
         self.system_prompt = self._build_system_prompt()
+        self.translator: Optional[TranslationService] = None
 
     def _build_system_prompt(self) -> str:
         """
@@ -151,9 +154,11 @@ Your role is to:
 Be helpful, concise, and user-friendly!"""
 
     async def _initialize_client(self) -> None:
-        """Initialize OpenAI client if not already initialized."""
+        """Initialize OpenAI client and translator if not already initialized."""
         if self.client is None:
             self.client = get_async_openai_client()
+        if self.translator is None:
+            self.translator = TranslationService(self.client)
 
     def _build_messages(
         self, message: str, conversation_history: List[Dict[str, str]]
@@ -222,8 +227,18 @@ Be helpful, concise, and user-friendly!"""
             if conversation_history is None:
                 conversation_history = []
 
-            # Build messages for OpenAI
-            messages = self._build_messages(message, conversation_history)
+            # MULTI-LANGUAGE SUPPORT: Detect language and translate to English
+            detected_lang = LanguageDetector.detect(message)
+            logger.info(f"Detected language: {LanguageDetector.get_language_name(detected_lang)}")
+
+            # Translate user message to English if needed
+            english_message = message
+            if detected_lang != "en":
+                english_message = await self.translator.translate_to_english(message, detected_lang)
+                logger.info(f"Translated to English: {english_message}")
+
+            # Build messages for OpenAI (using English message)
+            messages = self._build_messages(english_message, conversation_history)
 
             # Get available tools
             tools = get_openai_tools()
@@ -310,12 +325,18 @@ Be helpful, concise, and user-friendly!"""
                 # No tool calls needed, use direct response
                 final_text = assistant_message.content
 
+            # MULTI-LANGUAGE SUPPORT: Translate response back to user's language
+            if detected_lang != "en" and final_text:
+                final_text = await self.translator.translate_from_english(final_text, detected_lang)
+                logger.info(f"Translated response to {LanguageDetector.get_language_name(detected_lang)}")
+
             logger.info("Agent processing completed successfully")
 
             return {
                 "response": final_text,
                 "tool_calls": tool_calls_made,
                 "success": True,
+                "detected_language": detected_lang,
             }
 
         except Exception as e:
