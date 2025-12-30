@@ -22,6 +22,9 @@ class AddTaskInput(BaseModel):
         ..., min_length=1, max_length=200, description="Task title (1-200 characters)"
     )
     description: Optional[str] = Field(None, description="Optional task description")
+    priority: str = Field(default="medium", description="Task priority: high, medium, low")
+    category: Optional[str] = Field(None, description="Task category")
+    due_date: Optional[str] = Field(None, description="Due date in ISO format")
 
     @field_validator("title")
     @classmethod
@@ -31,6 +34,33 @@ class AddTaskInput(BaseModel):
             raise ValueError("Task title cannot be empty or whitespace only")
         return v.strip()
 
+    @field_validator("priority")
+    @classmethod
+    def validate_priority(cls, v: str) -> str:
+        """Validate priority is one of the allowed values."""
+        if v not in ["high", "medium", "low"]:
+            raise ValueError("Priority must be one of: high, medium, low")
+        return v
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: Optional[str]) -> Optional[str]:
+        """Validate category is one of the allowed values."""
+        if v is not None and v not in ["work", "home", "study", "personal", "shopping", "health", "fitness"]:
+            raise ValueError("Category must be one of: work, home, study, personal, shopping, health, fitness")
+        return v
+
+    @field_validator("due_date")
+    @classmethod
+    def validate_due_date(cls, v: Optional[str]) -> Optional[str]:
+        """Validate due_date is a valid ISO datetime string."""
+        if v is not None:
+            try:
+                datetime.fromisoformat(v.replace('Z', '+00:00'))
+            except ValueError:
+                raise ValueError("due_date must be a valid ISO datetime string")
+        return v
+
 
 class TaskData(BaseModel):
     """Task data returned in tool responses."""
@@ -39,8 +69,11 @@ class TaskData(BaseModel):
     title: str = Field(..., description="Task title")
     description: Optional[str] = Field(None, description="Task description")
     status: str = Field(..., description="Task status (pending/completed)")
-    created_at: datetime = Field(..., description="Creation timestamp")
-    updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
+    priority: str = Field(..., description="Task priority (high/medium/low)")
+    category: Optional[str] = Field(None, description="Task category")
+    due_date: Optional[str] = Field(None, description="Task due date (ISO format)")
+    created_at: Optional[str] = Field(None, description="Creation timestamp")
+    updated_at: Optional[str] = Field(None, description="Last update timestamp")
 
 
 class AddTaskOutput(BaseModel):
@@ -62,6 +95,45 @@ class ListTasksInput(BaseModel):
     status: Literal["all", "pending", "completed"] = Field(
         "all", description="Filter by status: 'all', 'pending', or 'completed'"
     )
+    priority: Optional[str] = Field(None, description="Filter by priority")
+    category: Optional[str] = Field(None, description="Filter by category")
+    search: Optional[str] = Field(None, description="Search keyword in title/description")
+    due_date_from: Optional[str] = Field(None, description="Filter tasks due from this date")
+    due_date_to: Optional[str] = Field(None, description="Filter tasks due until this date")
+    sort_by: str = Field(default="created_at", description="Sort field: created_at, due_date, priority, title")
+    sort_order: str = Field(default="desc", description="Sort order: asc, desc")
+
+    @field_validator("priority")
+    @classmethod
+    def validate_priority(cls, v: Optional[str]) -> Optional[str]:
+        """Validate priority filter."""
+        if v is not None and v not in ["high", "medium", "low"]:
+            raise ValueError("Priority must be one of: high, medium, low")
+        return v
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: Optional[str]) -> Optional[str]:
+        """Validate category filter."""
+        if v is not None and v not in ["work", "home", "study", "personal", "shopping", "health", "fitness"]:
+            raise ValueError("Category must be one of: work, home, study, personal, shopping, health, fitness")
+        return v
+
+    @field_validator("sort_by")
+    @classmethod
+    def validate_sort_by(cls, v: str) -> str:
+        """Validate sort_by field."""
+        if v not in ["created_at", "due_date", "priority", "title"]:
+            raise ValueError("sort_by must be one of: created_at, due_date, priority, title")
+        return v
+
+    @field_validator("sort_order")
+    @classmethod
+    def validate_sort_order(cls, v: str) -> str:
+        """Validate sort_order."""
+        if v not in ["asc", "desc"]:
+            raise ValueError("sort_order must be one of: asc, desc")
+        return v
 
 
 class ListTasksData(BaseModel):
@@ -144,6 +216,9 @@ class UpdateTaskInput(BaseModel):
         None, min_length=1, max_length=200, description="New task title (optional)"
     )
     description: Optional[str] = Field(None, description="New task description (optional)")
+    priority: Optional[str] = Field(None, description="Task priority")
+    category: Optional[str] = Field(None, description="Task category")
+    due_date: Optional[str] = Field(None, description="Due date in ISO format")
 
     @field_validator("title")
     @classmethod
@@ -152,6 +227,33 @@ class UpdateTaskInput(BaseModel):
         if v is not None and not v.strip():
             raise ValueError("Task title cannot be empty or whitespace only")
         return v.strip() if v else None
+
+    @field_validator("priority")
+    @classmethod
+    def validate_priority(cls, v: Optional[str]) -> Optional[str]:
+        """Validate priority if provided."""
+        if v is not None and v not in ["high", "medium", "low"]:
+            raise ValueError("Priority must be one of: high, medium, low")
+        return v
+
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: Optional[str]) -> Optional[str]:
+        """Validate category if provided."""
+        if v is not None and v not in ["work", "home", "study", "personal", "shopping", "health", "fitness"]:
+            raise ValueError("Category must be one of: work, home, study, personal, shopping, health, fitness")
+        return v
+
+    @field_validator("due_date")
+    @classmethod
+    def validate_due_date(cls, v: Optional[str]) -> Optional[str]:
+        """Validate due_date if provided."""
+        if v is not None:
+            try:
+                datetime.fromisoformat(v.replace('Z', '+00:00'))
+            except ValueError:
+                raise ValueError("due_date must be a valid ISO datetime string")
+        return v
 
 
 class UpdateTaskData(BaseModel):

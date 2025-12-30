@@ -126,13 +126,13 @@ def register_all_tools() -> MCPToolRegistry:
             "type": "function",
             "function": {
                 "name": "add_task",
-                "description": "Create a new task for the user",
+                "description": "Create a new task for the user with priority, category, and due date",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "user_id": {
                             "type": "string",
-                            "description": "User ID from Better Auth",
+                            "description": "User ID from JWT Auth",
                         },
                         "title": {
                             "type": "string",
@@ -141,6 +141,21 @@ def register_all_tools() -> MCPToolRegistry:
                         "description": {
                             "type": "string",
                             "description": "Optional task description",
+                        },
+                        "priority": {
+                            "type": "string",
+                            "enum": ["high", "medium", "low"],
+                            "description": "Task priority (high, medium, low). Defaults to medium.",
+                            "default": "medium",
+                        },
+                        "category": {
+                            "type": "string",
+                            "enum": ["work", "home", "study", "personal", "shopping", "health", "fitness"],
+                            "description": "Task category (work, home, study, personal, shopping, health, fitness). Optional.",
+                        },
+                        "due_date": {
+                            "type": "string",
+                            "description": "Due date in ISO format (e.g., 2025-01-15T10:00:00Z). Optional.",
                         },
                     },
                     "required": ["user_id", "title"],
@@ -157,19 +172,53 @@ def register_all_tools() -> MCPToolRegistry:
             "type": "function",
             "function": {
                 "name": "list_tasks",
-                "description": "List tasks for the user with optional status filter",
+                "description": "List tasks for the user with filtering, search, and sorting. Supports filtering by status, priority, category, due date range, and keyword search.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "user_id": {
                             "type": "string",
-                            "description": "User ID from Better Auth",
+                            "description": "User ID from JWT Auth",
                         },
                         "status": {
                             "type": "string",
                             "enum": ["all", "pending", "completed"],
-                            "description": "Filter by status",
+                            "description": "Filter by completion status",
                             "default": "all",
+                        },
+                        "priority": {
+                            "type": "string",
+                            "enum": ["high", "medium", "low"],
+                            "description": "Filter by priority level. Optional.",
+                        },
+                        "category": {
+                            "type": "string",
+                            "enum": ["work", "home", "study", "personal", "shopping", "health", "fitness"],
+                            "description": "Filter by category. Optional.",
+                        },
+                        "search": {
+                            "type": "string",
+                            "description": "Search keyword in task title and description. Case-insensitive, partial match. Optional.",
+                        },
+                        "due_date_from": {
+                            "type": "string",
+                            "description": "Filter tasks due from this date (ISO format). Optional.",
+                        },
+                        "due_date_to": {
+                            "type": "string",
+                            "description": "Filter tasks due until this date (ISO format). Optional.",
+                        },
+                        "sort_by": {
+                            "type": "string",
+                            "enum": ["created_at", "due_date", "priority", "title"],
+                            "description": "Sort tasks by this field. Defaults to created_at.",
+                            "default": "created_at",
+                        },
+                        "sort_order": {
+                            "type": "string",
+                            "enum": ["asc", "desc"],
+                            "description": "Sort order (asc = ascending, desc = descending). Defaults to desc.",
+                            "default": "desc",
                         },
                     },
                     "required": ["user_id"],
