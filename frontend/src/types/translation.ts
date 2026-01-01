@@ -8,7 +8,7 @@
 /**
  * Supported languages
  */
-export type Language = 'en' | 'ur';
+export type Language = 'en' | 'ur' | 'ar' | 'zh' | 'tr';
 
 /**
  * Translation cache structure

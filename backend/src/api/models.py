@@ -17,6 +17,7 @@ class ChatRequest(BaseModel):
     Attributes:
         message: User's chat message (required)
         conversation_id: Optional conversation ID for resuming
+        detected_language: Optional detected language code (en or ur)
     """
 
     message: str = Field(
@@ -32,6 +33,12 @@ class ChatRequest(BaseModel):
         description="Conversation ID for resuming existing conversation",
         examples=[123],
     )
+    detected_language: Optional[str] = Field(
+        "en",
+        pattern="^(en|ur)$",
+        description="Detected language code (en for English, ur for Urdu)",
+        examples=["en", "ur"],
+    )
 
     class Config:
         """Pydantic configuration."""
@@ -40,6 +47,7 @@ class ChatRequest(BaseModel):
             "example": {
                 "message": "Remind me to buy groceries tomorrow",
                 "conversation_id": 42,
+                "detected_language": "en",
             }
         }
 

@@ -1,41 +1,48 @@
 /**
  * Language Toggle Component
+ * Feature: 006-bonus-features - Multi-language Support
  *
- * Displays a toggle button to switch between English (EN) and Urdu (UR).
- * Active language is highlighted with accent color.
+ * Provides a UI toggle to switch between English and Urdu languages.
+ * Supports RTL layout for Urdu.
  */
 
 import React from 'react';
-import { useTranslation } from '../hooks/useTranslation';
-import type { Language } from '../types/translation';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../contexts/LanguageContext';
+import type { Language } from '../types/translation.types';
 import './LanguageToggle.css';
 
-const LanguageToggle: React.FC = () => {
-  const { language, setLanguage } = useTranslation();
+export const LanguageToggle: React.FC = () => {
+  const { t } = useTranslation();
+  const { language, setLanguage } = useLanguage();
 
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
+  const toggleLanguage = () => {
+    const newLanguage: Language = language === 'en' ? 'ur' : 'en';
+    setLanguage(newLanguage);
   };
 
   return (
     <div className="language-toggle">
       <button
-        className={`lang-option ${language === 'en' ? 'active' : ''}`}
-        onClick={() => handleLanguageChange('en')}
-        aria-label="Switch to English"
+        className={`language-toggle__button ${language === 'en' ? 'active' : ''}`}
+        onClick={() => setLanguage('en')}
+        aria-label={t('language.english')}
       >
         EN
       </button>
-      <span className="lang-separator">|</span>
       <button
-        className={`lang-option ${language === 'ur' ? 'active' : ''}`}
-        onClick={() => handleLanguageChange('ur')}
-        aria-label="Switch to Urdu"
+        className={`language-toggle__button ${language === 'ur' ? 'active' : ''}`}
+        onClick={() => setLanguage('ur')}
+        aria-label={t('language.urdu')}
       >
         UR
       </button>
+      <div
+        className="language-toggle__slider"
+        style={{
+          transform: language === 'en' ? 'translateX(0)' : 'translateX(100%)'
+        }}
+      />
     </div>
   );
 };
-
-export default LanguageToggle;

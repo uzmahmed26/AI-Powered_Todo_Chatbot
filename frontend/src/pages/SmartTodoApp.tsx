@@ -8,12 +8,14 @@
  * - Typing indicators and error handling
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { apiClient, ChatResponse } from "../services/api";
-import { useTranslation } from "../hooks/useTranslation";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../context/AuthContext";
-import LanguageToggle from "../components/LanguageToggle";
+import { LanguageToggle } from "../components/LanguageToggle";
 import VoiceInputButton from "../components/VoiceInputButton";
+import TaskList from "../components/TaskList";
 import "../styles/SmartTodoApp.css";
 import "../styles/rtl.css";
 
@@ -29,20 +31,22 @@ const SmartTodoApp: React.FC = () => {
   // Authentication hook
   const { user, signout } = useAuth();
 
-  // Translation hook
-  const { translateAsync, language, isRTL, getTranslations } = useTranslation();
-
-  // Get translations for current language
-  const translations = getTranslations();
+  // Translation and language hooks
+  const { t } = useTranslation();
+  const { language, isRTL } = useLanguage();
 
   // State
   const [messages, setMessages] = useState<Message[]>([]);
-  const [translatedMessages, setTranslatedMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isVoiceListening, setIsVoiceListening] = useState(false);
+  const [showTaskList, setShowTaskList] = useState(true);
+  const [taskListKey, setTaskListKey] = useState(0);
+
+  // Ref for auto-scrolling messages
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Get user ID from authenticated user
   const userId = user?.id || "";
@@ -62,23 +66,10 @@ const SmartTodoApp: React.FC = () => {
     }
   }, [conversationId]);
 
-  // Translate messages when language changes
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
-    const translateMessages = async () => {
-      if (language === 'ur' && messages.length > 0) {
-        const translated = await Promise.all(
-          messages.map(async (msg) => ({
-            ...msg,
-            content: await translateAsync(msg.content),
-          }))
-        );
-        setTranslatedMessages(translated);
-      } else {
-        setTranslatedMessages(messages);
-      }
-    };
-    translateMessages();
-  }, [messages, language, translateAsync]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   /**
    * Send message to API and update chat
@@ -161,9 +152,24 @@ const SmartTodoApp: React.FC = () => {
     <div className={`smart-todo-app ${isRTL ? 'rtl' : ''}`}>
       {/* Header */}
       <header className="app-header">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '1rem' }}>
           <LanguageToggle />
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button
+              onClick={() => setShowTaskList(!showTaskList)}
+              style={{
+                padding: '0.5rem 1rem',
+                background: showTaskList ? '#3b82f6' : '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                transition: 'background 0.2s'
+              }}
+            >
+              {showTaskList ? '💬 Chat' : '📋 Tasks'}
+            </button>
             <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
               {user?.full_name || user?.email}
             </span>
@@ -183,40 +189,44 @@ const SmartTodoApp: React.FC = () => {
             </button>
           </div>
         </div>
-        <h1>🤖 {translations.header.title}</h1>
-        <p className="subtitle">{translations.header.subtitle}</p>
-        <button
-          className="btn-new-chat"
-          onClick={handleNewConversation}
-          title={translations.header.newChatTooltip}
-        >
-          {translations.header.newChatButton}
-        </button>
+        <h1>🤖 {t('header.title')}</h1>
+        <p className="subtitle">{t('header.subtitle')}</p>
+        {!showTaskList && (
+          <button
+            className="btn-new-chat"
+            onClick={handleNewConversation}
+            title={t('header.newChatTooltip')}
+          >
+            {t('header.newChatButton')}
+          </button>
+        )}
       </header>
 
-      {/* Chat Container */}
+      {/* Main Content - Toggle between Chat and Task List */}
+      {!showTaskList ? (
+      /* Chat Container */
       <div className="chat-container">
         {/* Messages */}
         <div className="messages-container">
           {messages.length === 0 && (
             <div className="welcome-message">
-              <h2>{translations.welcome.heading} {translations.welcome.emoji}</h2>
-              <p>{translations.welcome.intro}</p>
+              <h2>{t('welcome.heading')} {t('welcome.emoji')}</h2>
+              <p>{t('welcome.intro')}</p>
               <ul>
-                {translations.welcome.examples.map((example: string, index: number) => (
+                {(t('welcome.examples', { returnObjects: true }) as string[]).map((example: string, index: number) => (
                   <li key={index}>{example}</li>
                 ))}
               </ul>
             </div>
           )}
 
-          {translatedMessages.map((msg, index) => (
+          {messages.map((msg, index) => (
             <div
               key={index}
               className={`message ${msg.role === "user" ? "user-message" : "assistant-message"}`}
             >
               <div className="message-avatar">
-                {msg.role === "user" ? translations.messages.userAvatar : translations.messages.assistantAvatar}
+                {msg.role === "user" ? t('messages.userAvatar') : t('messages.assistantAvatar')}
               </div>
               <div className="message-content">
                 <div className="message-text">{msg.content}</div>
@@ -229,10 +239,13 @@ const SmartTodoApp: React.FC = () => {
             </div>
           ))}
 
+          {/* Scroll anchor */}
+          <div ref={messagesEndRef} />
+
           {/* Loading indicator */}
           {isLoading && (
             <div className="message assistant-message typing-indicator">
-              <div className="message-avatar">{translations.messages.assistantAvatar}</div>
+              <div className="message-avatar">{t('messages.assistantAvatar')}</div>
               <div className="message-content">
                 <div className="typing-dots">
                   <span></span>
@@ -249,7 +262,7 @@ const SmartTodoApp: React.FC = () => {
           <input
             type="text"
             className="message-input"
-            placeholder={isVoiceListening ? "🎤 Listening... Speak now!" : translations.input.placeholder}
+            placeholder={isVoiceListening ? "🎤 Listening... Speak now!" : t('input.placeholder')}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             disabled={isLoading}
@@ -260,26 +273,30 @@ const SmartTodoApp: React.FC = () => {
             disabled={isLoading}
           />
           <button type="submit" className="send-button" disabled={isLoading || !inputMessage.trim()}>
-            {isLoading ? translations.input.sendingButton : translations.input.sendButton}
+            {isLoading ? t('input.sendingButton') : t('input.sendButton')}
           </button>
         </form>
 
         {/* Error Display */}
         {error && (
           <div className="error-banner">
-            <span>{translations.errors.prefix} {error}</span>
-            <button onClick={() => setError(null)}>{translations.errors.close}</button>
+            <span>{t('errors.prefix')} {error}</span>
+            <button onClick={() => setError(null)}>{t('errors.close')}</button>
           </div>
         )}
       </div>
+      ) : (
+        /* Task List View */
+        <TaskList key={taskListKey} userId={userId} />
+      )}
 
       {/* Footer */}
       <footer className="app-footer">
         <p>
           {conversationId ? (
-            <>{translations.footer.conversationLabel}{conversationId}</>
+            <>{t('footer.conversationLabel')}{conversationId}</>
           ) : (
-            <>{translations.footer.defaultMessage}</>
+            <>{t('footer.defaultMessage')}</>
           )}
         </p>
       </footer>

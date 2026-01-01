@@ -23,6 +23,7 @@ async def store_message(
     user_id: str,
     role: MessageRole,
     content: str,
+    detected_language: str = "en",
 ) -> Message:
     """
     Store a message in the database.
@@ -33,6 +34,7 @@ async def store_message(
         user_id: User ID from Better Auth
         role: Message role (user or assistant)
         content: Message content
+        detected_language: Detected language code (en or ur, default: en)
 
     Returns:
         Created Message instance
@@ -43,7 +45,7 @@ async def store_message(
     try:
         logger.info(
             f"Storing message: conversation={conversation_id}, "
-            f"role={role}, user={user_id}"
+            f"role={role}, user={user_id}, language={detected_language}"
         )
 
         message = Message(
@@ -51,6 +53,7 @@ async def store_message(
             user_id=user_id,
             role=role,
             content=content,
+            detected_language=detected_language,
         )
 
         session.add(message)

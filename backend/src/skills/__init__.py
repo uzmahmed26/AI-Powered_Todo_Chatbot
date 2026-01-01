@@ -1,24 +1,16 @@
 """
-Agent Skills Package
+Agent Skills Module
 
-Reusable, composable AI skills for task management operations.
-
-Skills are stateless units that perform specific AI-powered operations:
-- Extraction: Parse text into structured data (extract_tasks)
-- Enhancement: Add intelligence to tasks (prioritize_task, suggest_schedule, classify_category)
-- Transformation: Modify task structure (breakdown_task)
-
-Usage:
-    from skills.registry import get_registry
-    from skills.executor import SkillExecutor
-
-    registry = get_registry()
-    executor = SkillExecutor()
-
-    result = await executor.execute("extract_tasks", {"text": "Buy milk"}, "user123")
+Reusable skills for common task management patterns using decorator pattern.
+Skills are registered in SKILL_REGISTRY and can be invoked by name.
 """
 
-from .registry import get_registry, SkillRegistry
-from .executor import SkillExecutor
+from .registry import skill, SKILL_REGISTRY, invoke_skill, list_available_skills, get_registry
 
-__all__ = ["get_registry", "SkillRegistry", "SkillExecutor"]
+__all__ = [
+    'skill',
+    'SKILL_REGISTRY',
+    'invoke_skill',
+    'list_available_skills',
+    'get_registry',
+]

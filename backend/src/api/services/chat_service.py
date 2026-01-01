@@ -30,6 +30,7 @@ async def process_chat_message(
     message: str,
     conversation_id: Optional[int] = None,
     max_context_messages: int = 20,
+    detected_language: Optional[str] = "en",
 ) -> Dict[str, Any]:
     """
     Process a chat message through the complete flow.
@@ -48,6 +49,7 @@ async def process_chat_message(
         message: User's message text
         conversation_id: Optional conversation ID (None = new conversation)
         max_context_messages: Maximum messages to load for context (default: 20)
+        detected_language: Detected language code (en or ur, default: en)
 
     Returns:
         Dictionary with:
@@ -64,7 +66,8 @@ async def process_chat_message(
             session=session,
             user_id="auth0|abc123",
             message="Add buy milk to my tasks",
-            conversation_id=None
+            conversation_id=None,
+            detected_language="en"
         )
         # Returns: {
         #     "conversation_id": 1,
@@ -89,8 +92,9 @@ async def process_chat_message(
             user_id=user_id,
             role=MessageRole.USER,
             content=message,
+            detected_language=detected_language,
         )
-        logger.info("User message stored")
+        logger.info(f"User message stored with language: {detected_language}")
 
         # Step 3: Load conversation history for context
         conversation_history = await get_recent_messages(
@@ -101,7 +105,7 @@ async def process_chat_message(
         logger.info(f"Loaded {len(conversation_history)} messages for context")
 
         # Step 4: Initialize and run AI agent
-        agent = TodoAgent(user_id=user_id)
+        agent = TodoAgent(user_id=user_id, language=detected_language)
         agent_result = await agent.process_message(
             message=message,
             conversation_history=conversation_history[:-1],  # Exclude the message we just stored
@@ -116,8 +120,9 @@ async def process_chat_message(
             user_id=user_id,
             role=MessageRole.ASSISTANT,
             content=assistant_response,
+            detected_language=detected_language,
         )
-        logger.info("Assistant message stored")
+        logger.info(f"Assistant message stored with language: {detected_language}")
 
         # Step 6: Build final response
         response = {

@@ -97,6 +97,66 @@ class ApiClient {
   }
 
   /**
+   * List tasks with filters and sorting
+   */
+  async listTasks(
+    userId: string,
+    options?: {
+      search?: string;
+      status?: 'pending' | 'completed';
+      priority?: 'high' | 'medium' | 'low';
+      category?: string;
+      sort_by?: 'due_date' | 'priority' | 'title';
+      sort_order?: 'asc' | 'desc';
+    }
+  ): Promise<{ tasks: any[] }> {
+    try {
+      const params = new URLSearchParams();
+      if (options?.search) params.append('search', options.search);
+      if (options?.status) params.append('status', options.status);
+      if (options?.priority) params.append('priority', options.priority);
+      if (options?.category) params.append('category', options.category);
+      if (options?.sort_by) params.append('sort_by', options.sort_by);
+      if (options?.sort_order) params.append('sort_order', options.sort_order);
+
+      const queryString = params.toString();
+      const url = `/${userId}/tasks${queryString ? '?' + queryString : ''}`;
+
+      const response = await this.client.get(url);
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  /**
+   * Complete a task
+   */
+  async completeTask(userId: string, taskId: number): Promise<any> {
+    try {
+      const response = await this.client.post(`/${userId}/tasks/${taskId}/complete`);
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a task
+   */
+  async deleteTask(userId: string, taskId: number): Promise<any> {
+    try {
+      const response = await this.client.delete(`/${userId}/tasks/${taskId}`);
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
+  /**
    * Send a chat message to the API
    *
    * @param userId - User ID from Better Auth

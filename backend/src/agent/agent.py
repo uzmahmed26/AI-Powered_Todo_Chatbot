@@ -38,27 +38,36 @@ class TodoAgent:
         )
     """
 
-    def __init__(self, user_id: str):
+    def __init__(self, user_id: str, language: str = "en"):
         """
         Initialize the TodoAgent.
 
         Args:
             user_id: User ID from Better Auth (for tool invocations)
+            language: Language code for responses (en or ur, default: en)
         """
         self.user_id = user_id
+        self.language = language
         self.client: Optional[AsyncOpenAI] = None
         self.model_config = get_model_config()
-        self.system_prompt = self._build_system_prompt()
+        self.system_prompt = self._build_system_prompt(language)
         self.translator: Optional[TranslationService] = None
 
-    def _build_system_prompt(self) -> str:
+    def _build_system_prompt(self, language: str = "en") -> str:
         """
         Build the system prompt for the agent.
+
+        Args:
+            language: Language code for responses (en or ur)
 
         Returns:
             System prompt defining agent behavior
         """
-        return """You are a helpful AI assistant for managing todo tasks. Your actions are performed for a specific user, and you already know their user_id. You must not ask for it.
+        language_instruction = ""
+        if language == "ur":
+            language_instruction = "\n\n**IMPORTANT: You must respond in Urdu language. All your responses, confirmations, and messages must be in Urdu (اردو).**\n"
+
+        return f"""You are a helpful AI assistant for managing todo tasks. Your actions are performed for a specific user, and you already know their user_id. You must not ask for it.{language_instruction}
 
 Your role is to:
 

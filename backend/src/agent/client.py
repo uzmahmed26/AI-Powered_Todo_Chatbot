@@ -9,9 +9,12 @@ import os
 from typing import Optional
 from openai import OpenAI, AsyncOpenAI
 from dotenv import load_dotenv
+from pathlib import Path
 import logging
 
-load_dotenv()
+# Load .env from project root
+env_path = Path(__file__).parent.parent.parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 logger = logging.getLogger(__name__)
 

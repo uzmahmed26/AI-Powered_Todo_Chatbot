@@ -12,9 +12,11 @@ Or use uvicorn directly:
 import uvicorn
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from project root
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 if __name__ == "__main__":
     # Check for required environment variables

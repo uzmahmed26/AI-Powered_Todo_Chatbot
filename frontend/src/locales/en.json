@@ -1,0 +1,46 @@
+{
+  "chat": {
+    "placeholder": "Type your message...",
+    "voiceButton": "Voice Input",
+    "send": "Send",
+    "recording": "Recording...",
+    "processing": "Processing...",
+    "listening": "Listening..."
+  },
+  "tasks": {
+    "created": "Task created successfully",
+    "updated": "Task updated successfully",
+    "deleted": "Task deleted successfully",
+    "completed": "Task marked as complete",
+    "uncompleted": "Task marked as incomplete"
+  },
+  "language": {
+    "english": "English",
+    "urdu": "Urdu",
+    "switchTo": "Switch to {{language}}",
+    "autoDetect": "Auto-detect language",
+    "detected": "Detected language: {{language}}"
+  },
+  "errors": {
+    "generic": "An error occurred. Please try again.",
+    "network": "Network error. Please check your connection.",
+    "auth": "Authentication failed. Please log in again.",
+    "permission": "Permission denied",
+    "voiceNotSupported": "Voice input is not supported in your browser",
+    "voicePermissionDenied": "Microphone access denied. Please grant permission.",
+    "voiceNoSpeech": "No speech detected. Please try again.",
+    "voiceTimeout": "Recording timed out. Please try again.",
+    "taskNotFound": "Task not found",
+    "invalidInput": "Invalid input. Please try again."
+  },
+  "common": {
+    "loading": "Loading...",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete"
+  }
+}

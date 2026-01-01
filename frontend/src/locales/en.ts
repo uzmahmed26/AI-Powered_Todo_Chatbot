@@ -61,7 +61,53 @@ export const translations = {
   language: {
     en: 'EN',
     ur: 'UR',
+    ar: 'AR',
+    zh: 'ZH',
+    tr: 'TR',
     separator: '|',
+  },
+
+  tasks: {
+    search: {
+      placeholder: 'Search tasks...',
+    },
+    filter: {
+      status: 'Status:',
+      priority: 'Priority:',
+      category: 'Category:',
+      all: 'All',
+      pending: 'Pending',
+      completed: 'Completed',
+      high: 'High',
+      medium: 'Medium',
+      low: 'Low',
+    },
+    sort: {
+      label: 'Sort by:',
+      dueDate: 'Due Date',
+      priority: 'Priority',
+      title: 'Title',
+    },
+    empty: {
+      icon: '📝',
+      title: 'No tasks found',
+      description: 'Try adjusting your search or filters',
+    },
+    card: {
+      complete: 'Complete',
+      delete: 'Delete',
+      recurring: 'Recurring',
+      due: 'Due',
+    },
+    categories: {
+      work: 'Work',
+      home: 'Home',
+      study: 'Study',
+      shopping: 'Shopping',
+      health: 'Health',
+      fitness: 'Fitness',
+      personal: 'Personal',
+    },
   },
 };
 
@@ -110,6 +156,9 @@ export type TranslationKeys = {
   language: {
     en: string;
     ur: string;
+    ar: string;
+    zh: string;
+    tr: string;
     separator: string;
   };
 };

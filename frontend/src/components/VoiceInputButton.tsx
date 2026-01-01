@@ -7,7 +7,7 @@
 
 import React, { useEffect } from 'react';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
-import { useTranslation } from '../hooks/useTranslation';
+import { useLanguage } from '../contexts/LanguageContext';
 import './VoiceInputButton.css';
 
 interface VoiceInputButtonProps {
@@ -21,7 +21,7 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
   onListeningChange,
   disabled = false,
 }) => {
-  const { language } = useTranslation();
+  const { language } = useLanguage();
 
   const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition({
     language,

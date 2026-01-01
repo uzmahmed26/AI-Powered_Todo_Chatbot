@@ -63,6 +63,52 @@ export const translations: TranslationKeys = {
   language: {
     en: 'EN',
     ur: 'UR',
+    ar: 'AR',
+    zh: 'ZH',
+    tr: 'TR',
     separator: '|',
+  },
+
+  tasks: {
+    search: {
+      placeholder: 'کام تلاش کریں...',
+    },
+    filter: {
+      status: 'حالت:',
+      priority: 'ترجیح:',
+      category: 'زمرہ:',
+      all: 'تمام',
+      pending: 'زیر التواء',
+      completed: 'مکمل',
+      high: 'اعلیٰ',
+      medium: 'درمیانہ',
+      low: 'کم',
+    },
+    sort: {
+      label: 'ترتیب دیں:',
+      dueDate: 'مقررہ تاریخ',
+      priority: 'ترجیح',
+      title: 'عنوان',
+    },
+    empty: {
+      icon: '📝',
+      title: 'کوئی کام نہیں ملا',
+      description: 'اپنی تلاش یا فلٹرز کو ایڈجسٹ کرنے کی کوشش کریں',
+    },
+    card: {
+      complete: 'مکمل کریں',
+      delete: 'حذف کریں',
+      recurring: 'بار بار آنے والا',
+      due: 'مقررہ تاریخ',
+    },
+    categories: {
+      work: 'کام',
+      home: 'گھر',
+      study: 'مطالعہ',
+      shopping: 'خریداری',
+      health: 'صحت',
+      fitness: 'فٹنس',
+      personal: 'ذاتی',
+    },
   },
 } as const;

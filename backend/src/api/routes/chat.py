@@ -124,6 +124,7 @@ async def process_chat(
             user_id=user_id,
             message=request.message,
             conversation_id=request.conversation_id,
+            detected_language=request.detected_language,
         )
 
         # Convert tool calls to response model

@@ -139,14 +139,17 @@ async def health_check() -> JSONResponse:
 from .routes import chat
 from .routes import auth
 from .routes import skills
+from .routes import tasks
 
 app.include_router(chat.router, prefix="/api", tags=["Chat"])
 app.include_router(auth.router, prefix="/api", tags=["Authentication"])
 app.include_router(skills.router, prefix="/api/{user_id}/skills", tags=["Skills"])
+app.include_router(tasks.router, prefix="/api", tags=["Tasks"])
 
 logger.info("Chat API route registered at /api/{user_id}/chat")
 logger.info("Auth API routes registered at /api/auth/*")
 logger.info("Skills API routes registered at /api/{user_id}/skills/*")
+logger.info("Tasks API routes registered at /api/{user_id}/tasks")
 
 
 # ============================================================================

@@ -6,6 +6,7 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { SignupPage } from './pages/SignupPage';
 import { SigninPage } from './pages/SigninPage';
@@ -14,24 +15,26 @@ import "./App.css";
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <div className="App">
-          <Routes>
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/signin" element={<SigninPage />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <SmartTodoApp />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </div>
-      </AuthProvider>
-    </BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <div className="App">
+            <Routes>
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/signin" element={<SigninPage />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <SmartTodoApp />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </div>
+        </AuthProvider>
+      </BrowserRouter>
+    </LanguageProvider>
   );
 }
 

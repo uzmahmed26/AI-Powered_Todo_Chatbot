@@ -1,145 +1,90 @@
 /**
  * Language Context
- *
- * Global language state management with localStorage persistence.
- * Provides language preference, RTL state, and translation functions.
+ * Feature: 006-bonus-features - Multi-language Support
+ * 
+ * Provides i18next initialization and language switching functionality.
+ * Manages language preferences with localStorage persistence.
  */
 
-import React, { createContext, useState, useEffect, useCallback } from 'react';
-import type { Language, TranslationContextValue } from '../types/translation';
-import { translateText } from '../services/translation';
-import { isRTLLanguage, applyRTL } from '../utils/rtl';
-import { translations as enTranslations } from '../locales/en';
-import { translations as urTranslations } from '../locales/ur';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+import type { Language } from '../types/translation.types';
 
-const LANGUAGE_STORAGE_KEY = 'app_language';
-const DEFAULT_LANGUAGE: Language = 'en';
+// Import translation files
+import en from '../locales/en.json';
+import ur from '../locales/ur.json';
 
-/**
- * Language Context
- */
-export const LanguageContext = createContext<TranslationContextValue | undefined>(undefined);
-
-/**
- * Language Provider Props
- */
-interface LanguageProviderProps {
-  children: React.ReactNode;
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  isRTL: boolean;
 }
 
-/**
- * Language Provider Component
- *
- * Wraps the application to provide language state and translation functions.
- */
-export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE);
-  const [isLoading, setIsLoading] = useState(false);
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-  /**
-   * Load language preference from localStorage on mount
-   */
-  useEffect(() => {
-    try {
-      const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY) as Language;
-      if (savedLanguage === 'en' || savedLanguage === 'ur') {
-        setLanguageState(savedLanguage);
+// Initialize i18next
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources: {
+      en: {
+        translation: en
+      },
+      ur: {
+        translation: ur
       }
-    } catch (error) {
-      console.warn('[LanguageContext] Failed to load language preference:', error);
+    },
+    fallbackLng: 'en',
+    lng: localStorage.getItem('i18nextLng') || 'en',
+    interpolation: {
+      escapeValue: false // React already escapes
+    },
+    detection: {
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
+      lookupLocalStorage: 'i18nextLng'
     }
-  }, []);
+  });
 
-  /**
-   * Apply RTL direction when language changes
-   */
-  useEffect(() => {
-    const isRTL = isRTLLanguage(language);
-    applyRTL(isRTL);
-  }, [language]);
+export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguageState] = useState<Language>(
+    (localStorage.getItem('i18nextLng') as Language) || 'en'
+  );
+  const [isRTL, setIsRTL] = useState(language === 'ur');
 
-  /**
-   * Set language and persist to localStorage
-   */
-  const setLanguage = useCallback((lang: Language) => {
+  const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    try {
-      localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-    } catch (error) {
-      console.warn('[LanguageContext] Failed to save language preference:', error);
-    }
-  }, []);
-
-  /**
-   * Toggle between EN and UR
-   */
-  const toggleLanguage = useCallback(() => {
-    setLanguage(language === 'en' ? 'ur' : 'en');
-  }, [language, setLanguage]);
-
-  /**
-   * Synchronous translate function
-   * Returns translation from locale files based on current language
-   */
-  const translate = useCallback(
-    (text: string): string => {
-      // Return the text as-is since we're now using locale files directly
-      // The component should pass the text from the appropriate locale file
-      return text;
-    },
-    []
-  );
-
-  /**
-   * Get translations object for current language
-   */
-  const getTranslations = useCallback(() => {
-    return language === 'ur' ? urTranslations : enTranslations;
-  }, [language]);
-
-  /**
-   * Asynchronous translate function
-   * Uses Google Translate API with caching for dynamic content (chat messages)
-   */
-  const translateAsync = useCallback(
-    async (text: string): Promise<string> => {
-      // For dynamic text (chat messages), use translation service
-      if (language === 'en') {
-        return text; // No translation needed for English
-      }
-
-      setIsLoading(true);
-      try {
-        const translated = await translateText(text, language);
-        return translated;
-      } catch (error) {
-        console.error('[LanguageContext] Translation failed:', error);
-        return text; // Fallback to original
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [language]
-  );
-
-  /**
-   * Compute RTL state
-   */
-  const isRTL = isRTLLanguage(language);
-
-  /**
-   * Context value
-   */
-  const value: TranslationContextValue = {
-    language,
-    setLanguage,
-    isRTL,
-    translate,
-    translateAsync,
-    toggleLanguage,
-    isLoading,
-    getTranslations,
+    i18n.changeLanguage(lang);
+    localStorage.setItem('i18nextLng', lang);
+    
+    // Update RTL direction
+    const rtl = lang === 'ur';
+    setIsRTL(rtl);
+    document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang;
   };
 
-  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
+  // Set initial direction on mount
+  useEffect(() => {
+    const rtl = language === 'ur';
+    document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+    document.documentElement.lang = language;
+  }, [language]);
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, isRTL }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = (): LanguageContextType => {
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
 };
