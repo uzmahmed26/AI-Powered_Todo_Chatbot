@@ -6,6 +6,7 @@ colorTo: purple
 sdk: docker
 pinned: false
 license: mit
+short_description: AI-powered todo management backend with FastAPI and GPT-4
 ---
 
 # 🤖 Smart Todo ChatKit Backend API

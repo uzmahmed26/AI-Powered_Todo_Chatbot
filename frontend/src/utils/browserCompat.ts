@@ -77,9 +77,9 @@ export function getBrowserCompatibility(): BrowserCompatibility {
  *
  * @returns SpeechRecognition constructor or null if not supported
  */
-export function getSpeechRecognition(): typeof SpeechRecognition | null {
+export function getSpeechRecognition(): any | null {
   if ('SpeechRecognition' in window) {
-    return window.SpeechRecognition;
+    return (window as any).SpeechRecognition;
   }
 
   if ('webkitSpeechRecognition' in window) {

@@ -218,18 +218,6 @@ export interface Translation {
 }
 
 /**
- * i18next module augmentation for type safety
- */
-declare module 'i18next' {
-  interface CustomTypeOptions {
-    defaultNS: 'translation';
-    resources: {
-      translation: Translation;
-    };
-  }
-}
-
-/**
  * Language preference stored in localStorage
  */
 export interface LanguagePreference {
