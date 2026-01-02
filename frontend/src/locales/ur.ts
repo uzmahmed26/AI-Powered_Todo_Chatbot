@@ -5,9 +5,9 @@
  * Translated from English source.
  */
 
-import type { TranslationKeys } from './en';
+import { translations as en } from './en';
 
-export const translations: TranslationKeys = {
+export const translations: typeof en = {
   header: {
     title: 'سمارٹ ٹوڈو اسسٹنٹ',
     subtitle: 'اپنے کاموں کو منظم کرنے کے لیے قدرتی طور پر چیٹ کریں',

@@ -7,7 +7,6 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Language } from '../types/translation.types';
 import './LanguageToggle.css';
