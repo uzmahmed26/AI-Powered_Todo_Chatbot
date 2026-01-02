@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { Navbar } from '../components/Navbar';
 
 export function SigninPage() {
   const [email, setEmail] = useState('');
@@ -9,6 +11,7 @@ export function SigninPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { signin } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,25 +21,27 @@ export function SigninPage() {
 
     try {
       await signin(email, password);
-      navigate('/');
+      navigate('/app');
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'Invalid email or password');
+      setError(err.response?.data?.detail || err.message || t('auth.signin.invalidCredentials'));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', padding: '3rem 1rem' }}>
+    <>
+      <Navbar />
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', padding: '3rem 1rem' }}>
       <div style={{ maxWidth: '28rem', width: '100%' }}>
         <div>
           <h2 style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '1.875rem', fontWeight: 'bold', color: '#111827' }}>
-            Sign in to your account
+            {t('auth.signin.title')}
           </h2>
           <p style={{ marginTop: '0.5rem', textAlign: 'center', fontSize: '0.875rem', color: '#6b7280' }}>
-            Don't have an account?{' '}
+            {t('auth.signin.subtitle')}{' '}
             <Link to="/signup" style={{ fontWeight: '500', color: '#4f46e5', textDecoration: 'none' }}>
-              Sign up
+              {t('auth.signin.signupLink')}
             </Link>
           </p>
         </div>
@@ -54,7 +59,7 @@ export function SigninPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email address"
+              placeholder={t('auth.signin.emailPlaceholder')}
               style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
             />
           </div>
@@ -65,7 +70,7 @@ export function SigninPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
+              placeholder={t('auth.signin.passwordPlaceholder')}
               style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
             />
           </div>
@@ -75,10 +80,11 @@ export function SigninPage() {
             disabled={isLoading}
             style={{ width: '100%', padding: '0.75rem', background: isLoading ? '#9ca3af' : '#4f46e5', color: 'white', border: 'none', borderRadius: '0.375rem', fontSize: '0.875rem', fontWeight: '500', cursor: isLoading ? 'not-allowed' : 'pointer' }}
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {isLoading ? t('auth.signin.submittingButton') : t('auth.signin.submitButton')}
           </button>
         </form>
       </div>
     </div>
+    </>
   );
 }

@@ -4,11 +4,14 @@
  * TypeScript types for i18next translations and language support
  */
 
-export type Language = 'en' | 'ur';
+export type Language = 'en' | 'ur' | 'ar' | 'zh' | 'tr';
 
 export interface TranslationResources {
   en: Translation;
   ur: Translation;
+  ar: Translation;
+  zh: Translation;
+  tr: Translation;
 }
 
 export interface Translation {
@@ -40,11 +43,12 @@ export interface Translation {
     languageDetectionFailed: string;
   };
   language: {
-    toggle: string;
-    english: string;
-    urdu: string;
-    autoDetect: string;
-    manualOverride: string;
+    en: string;
+    ur: string;
+    ar: string;
+    zh: string;
+    tr: string;
+    separator: string;
   };
   voice: {
     startRecording: string;

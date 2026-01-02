@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { HomePage } from './pages/HomePage';
 import { SignupPage } from './pages/SignupPage';
 import { SigninPage } from './pages/SigninPage';
 import SmartTodoApp from "./pages/SmartTodoApp";
@@ -20,10 +21,14 @@ function App() {
         <AuthProvider>
           <div className="App">
             <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<HomePage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/signin" element={<SigninPage />} />
+
+              {/* Protected Routes */}
               <Route
-                path="/"
+                path="/app"
                 element={
                   <ProtectedRoute>
                     <SmartTodoApp />

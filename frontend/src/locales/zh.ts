@@ -66,6 +66,86 @@ export const translations = {
     separator: '|',
   },
 
+  home: {
+    hero: {
+      title: '智能待办助手',
+      subtitle: '与AI自然对话，轻松管理您的任务',
+      description: '您的智能任务管理器由GPT-4驱动。只需告诉我您需要做什么，我将帮助您组织、优先处理和完成任务。',
+      getStarted: '开始使用 - 免费',
+      signIn: '登录',
+      goToDashboard: '前往仪表板 →',
+    },
+    preview: {
+      user1: '添加购买杂货到我的任务',
+      assistant1: '已将"购买杂货"添加到您的任务！',
+      user2: '显示我今天的任务',
+      assistant2: '您有3个任务：购买杂货、给妈妈打电话、完成报告',
+    },
+    features: {
+      title: '强大功能',
+      subtitle: '您保持井然有序所需的一切',
+      naturalLanguage: {
+        title: '自然语言',
+        description: '只需自然交谈 - 无需复杂命令或点击按钮',
+      },
+      multiLanguage: {
+        title: '多语言',
+        description: '支持英语、乌尔都语、阿拉伯语、中文和土耳其语',
+      },
+      voiceInput: {
+        title: '语音输入',
+        description: '说出您的任务 - 免提任务管理',
+      },
+      recurringTasks: {
+        title: '重复任务',
+        description: '设置每日、每周或每月重复任务',
+      },
+      smartSearch: {
+        title: '智能搜索',
+        description: '使用强大的搜索和过滤器即时查找任务',
+      },
+      aiPowered: {
+        title: 'AI驱动',
+        description: 'GPT-4理解上下文并帮助您保持井然有序',
+      },
+    },
+    cta: {
+      title: '准备好整理了吗？',
+      subtitle: '加入数千名使用AI管理任务的用户',
+      button: '立即免费开始 →',
+    },
+    footer: {
+      text: '© 2026 智能待办助手。使用GPT-4和❤️构建',
+    },
+  },
+
+  auth: {
+    signin: {
+      title: '登录您的账户',
+      subtitle: '没有账户？',
+      signupLink: '注册',
+      emailPlaceholder: '电子邮件地址',
+      passwordPlaceholder: '密码',
+      submitButton: '登录',
+      submittingButton: '登录中...',
+      invalidCredentials: '电子邮件或密码无效',
+    },
+    signup: {
+      title: '创建您的账户',
+      subtitle: '已有账户？',
+      signinLink: '登录',
+      fullNamePlaceholder: '全名',
+      emailPlaceholder: '电子邮件地址',
+      passwordPlaceholder: '密码（至少8个字符）',
+      confirmPasswordPlaceholder: '确认密码',
+      submitButton: '注册',
+      submittingButton: '创建账户中...',
+      passwordMismatch: '密码不匹配',
+      passwordTooShort: '密码必须至少8个字符',
+      signupFailed: '注册失败',
+    },
+  },
+
   tasks: {
     search: {
       placeholder: '搜索任务...',

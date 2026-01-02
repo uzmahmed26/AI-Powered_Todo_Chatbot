@@ -13,8 +13,11 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import type { Language } from '../types/translation.types';
 
 // Import translation files
-import en from '../locales/en.json';
-import ur from '../locales/ur.json';
+import { translations as en } from '../locales/en';
+import { translations as ur } from '../locales/ur';
+import { translations as ar } from '../locales/ar';
+import { translations as zh } from '../locales/zh';
+import { translations as tr } from '../locales/tr';
 
 interface LanguageContextType {
   language: Language;
@@ -30,12 +33,11 @@ i18n
   .use(initReactI18next)
   .init({
     resources: {
-      en: {
-        translation: en
-      },
-      ur: {
-        translation: ur
-      }
+      en: { translation: en },
+      ur: { translation: ur },
+      ar: { translation: ar },
+      zh: { translation: zh },
+      tr: { translation: tr }
     },
     fallbackLng: 'en',
     lng: localStorage.getItem('i18nextLng') || 'en',
@@ -53,15 +55,18 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [language, setLanguageState] = useState<Language>(
     (localStorage.getItem('i18nextLng') as Language) || 'en'
   );
-  const [isRTL, setIsRTL] = useState(language === 'ur');
+
+  // RTL languages: Arabic and Urdu
+  const isRTLLanguage = (lang: Language) => lang === 'ur' || lang === 'ar';
+  const [isRTL, setIsRTL] = useState(isRTLLanguage(language));
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     i18n.changeLanguage(lang);
     localStorage.setItem('i18nextLng', lang);
-    
-    // Update RTL direction
-    const rtl = lang === 'ur';
+
+    // Update RTL direction for Arabic and Urdu
+    const rtl = isRTLLanguage(lang);
     setIsRTL(rtl);
     document.documentElement.dir = rtl ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
@@ -69,7 +74,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Set initial direction on mount
   useEffect(() => {
-    const rtl = language === 'ur';
+    const rtl = isRTLLanguage(language);
     document.documentElement.dir = rtl ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
   }, [language]);

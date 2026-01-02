@@ -2,8 +2,8 @@
  * Language Toggle Component
  * Feature: 006-bonus-features - Multi-language Support
  *
- * Provides a UI toggle to switch between English and Urdu languages.
- * Supports RTL layout for Urdu.
+ * Provides a dropdown to switch between all supported languages:
+ * English, Urdu, Arabic, Chinese, Turkish
  */
 
 import React from 'react';
@@ -12,37 +12,44 @@ import { useLanguage } from '../contexts/LanguageContext';
 import type { Language } from '../types/translation.types';
 import './LanguageToggle.css';
 
+interface LanguageOption {
+  code: Language;
+  label: string;
+  flag: string;
+}
+
+const languages: LanguageOption[] = [
+  { code: 'en', label: 'English', flag: '🇬🇧' },
+  { code: 'ur', label: 'اردو', flag: '🇵🇰' },
+  { code: 'ar', label: 'العربية', flag: '🇸🇦' },
+  { code: 'zh', label: '中文', flag: '🇨🇳' },
+  { code: 'tr', label: 'Türkçe', flag: '🇹🇷' },
+];
+
 export const LanguageToggle: React.FC = () => {
   const { t } = useTranslation();
   const { language, setLanguage } = useLanguage();
 
-  const toggleLanguage = () => {
-    const newLanguage: Language = language === 'en' ? 'ur' : 'en';
-    setLanguage(newLanguage);
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLanguage(e.target.value as Language);
   };
+
+  const currentLanguage = languages.find(lang => lang.code === language);
 
   return (
     <div className="language-toggle">
-      <button
-        className={`language-toggle__button ${language === 'en' ? 'active' : ''}`}
-        onClick={() => setLanguage('en')}
-        aria-label={t('language.english')}
+      <select
+        value={language}
+        onChange={handleLanguageChange}
+        className="language-toggle__select"
+        aria-label="Select Language"
       >
-        EN
-      </button>
-      <button
-        className={`language-toggle__button ${language === 'ur' ? 'active' : ''}`}
-        onClick={() => setLanguage('ur')}
-        aria-label={t('language.urdu')}
-      >
-        UR
-      </button>
-      <div
-        className="language-toggle__slider"
-        style={{
-          transform: language === 'en' ? 'translateX(0)' : 'translateX(100%)'
-        }}
-      />
+        {languages.map((lang) => (
+          <option key={lang.code} value={lang.code}>
+            {lang.flag} {lang.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 };

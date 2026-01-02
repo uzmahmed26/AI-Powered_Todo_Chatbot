@@ -66,6 +66,86 @@ export const translations = {
     separator: '|',
   },
 
+  home: {
+    hero: {
+      title: 'مساعد المهام الذكي',
+      subtitle: 'تحدث بشكل طبيعي مع الذكاء الاصطناعي لإدارة مهامك بسهولة',
+      description: 'مدير المهام الذكي الخاص بك مدعوم بـ GPT-4. فقط أخبرني بما تحتاج إلى القيام به، وسأساعدك في التنظيم والترتيب وإكمال مهامك.',
+      getStarted: 'ابدأ - إنه مجاني',
+      signIn: 'تسجيل الدخول',
+      goToDashboard: 'انتقل إلى لوحة التحكم ←',
+    },
+    preview: {
+      user1: 'أضف شراء البقالة إلى مهامي',
+      assistant1: 'تمت إضافة "شراء البقالة" إلى مهامك!',
+      user2: 'اعرض مهامي لليوم',
+      assistant2: 'لديك 3 مهام: شراء البقالة، الاتصال بأمي، إنهاء التقرير',
+    },
+    features: {
+      title: 'ميزات قوية',
+      subtitle: 'كل ما تحتاجه للبقاء منظماً',
+      naturalLanguage: {
+        title: 'اللغة الطبيعية',
+        description: 'فقط تحدث بشكل طبيعي - لا أوامر معقدة أو أزرار للنقر',
+      },
+      multiLanguage: {
+        title: 'متعدد اللغات',
+        description: 'يدعم الإنجليزية والأردية والعربية والصينية والتركية',
+      },
+      voiceInput: {
+        title: 'إدخال صوتي',
+        description: 'انطق مهامك - إدارة المهام بدون استخدام اليدين',
+      },
+      recurringTasks: {
+        title: 'المهام المتكررة',
+        description: 'حدد المهام المتكررة يومياً أو أسبوعياً أو شهرياً',
+      },
+      smartSearch: {
+        title: 'بحث ذكي',
+        description: 'ابحث عن المهام على الفور باستخدام البحث القوي والفلاتر',
+      },
+      aiPowered: {
+        title: 'مدعوم بالذكاء الاصطناعي',
+        description: 'GPT-4 يفهم السياق ويساعدك على البقاء منظماً',
+      },
+    },
+    cta: {
+      title: 'هل أنت مستعد للتنظيم؟',
+      subtitle: 'انضم إلى الآلاف من المستخدمين الذين يديرون مهامهم بالذكاء الاصطناعي',
+      button: 'ابدأ مجاناً الآن ←',
+    },
+    footer: {
+      text: '© 2026 مساعد المهام الذكي. مبني بواسطة GPT-4 و ❤️',
+    },
+  },
+
+  auth: {
+    signin: {
+      title: 'تسجيل الدخول إلى حسابك',
+      subtitle: 'ليس لديك حساب؟',
+      signupLink: 'إنشاء حساب',
+      emailPlaceholder: 'عنوان البريد الإلكتروني',
+      passwordPlaceholder: 'كلمة المرور',
+      submitButton: 'تسجيل الدخول',
+      submittingButton: 'جاري تسجيل الدخول...',
+      invalidCredentials: 'بريد إلكتروني أو كلمة مرور غير صحيحة',
+    },
+    signup: {
+      title: 'إنشاء حسابك',
+      subtitle: 'هل لديك حساب بالفعل؟',
+      signinLink: 'تسجيل الدخول',
+      fullNamePlaceholder: 'الاسم الكامل',
+      emailPlaceholder: 'عنوان البريد الإلكتروني',
+      passwordPlaceholder: 'كلمة المرور (8 أحرف على الأقل)',
+      confirmPasswordPlaceholder: 'تأكيد كلمة المرور',
+      submitButton: 'إنشاء حساب',
+      submittingButton: 'جاري إنشاء الحساب...',
+      passwordMismatch: 'كلمات المرور غير متطابقة',
+      passwordTooShort: 'يجب أن تكون كلمة المرور 8 أحرف على الأقل',
+      signupFailed: 'فشل إنشاء الحساب',
+    },
+  },
+
   tasks: {
     search: {
       placeholder: 'البحث عن المهام...',
