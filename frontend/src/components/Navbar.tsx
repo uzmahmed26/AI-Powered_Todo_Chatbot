@@ -7,13 +7,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../contexts/LanguageContext';
 import { LanguageToggle } from './LanguageToggle';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
   const { user, signout, isLoading } = useAuth();
-  const { language } = useLanguage();
   const navigate = useNavigate();
 
   const handleSignout = async () => {

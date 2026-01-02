@@ -33,7 +33,7 @@ const SmartTodoApp: React.FC = () => {
 
   // Translation and language hooks
   const { t } = useTranslation();
-  const { language, isRTL } = useLanguage();
+  const { isRTL } = useLanguage();
 
   // State
   const [messages, setMessages] = useState<Message[]>([]);
@@ -43,7 +43,7 @@ const SmartTodoApp: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [showTaskList, setShowTaskList] = useState(true);
-  const [taskListKey, setTaskListKey] = useState(0);
+  const [taskListKey] = useState(0);
 
   // Ref for auto-scrolling messages
   const messagesEndRef = useRef<HTMLDivElement>(null);

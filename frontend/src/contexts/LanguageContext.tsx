@@ -25,7 +25,7 @@ interface LanguageContextType {
   isRTL: boolean;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 // Initialize i18next
 i18n

@@ -27,14 +27,11 @@ const languages: LanguageOption[] = [
 ];
 
 export const LanguageToggle: React.FC = () => {
-  const { t } = useTranslation();
   const { language, setLanguage } = useLanguage();
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setLanguage(e.target.value as Language);
   };
-
-  const currentLanguage = languages.find(lang => lang.code === language);
 
   return (
     <div className="language-toggle">
