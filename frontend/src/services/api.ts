@@ -220,7 +220,7 @@ class ApiClient {
    */
   async signup(email: string, password: string, fullName: string): Promise<any> {
     try {
-      const response = await this.client.post('/auth/signup', {
+      const response = await this.client.post('/api/auth/signup', {
         email,
         password,
         full_name: fullName,
@@ -237,7 +237,7 @@ class ApiClient {
    */
   async signin(email: string, password: string): Promise<any> {
     try {
-      const response = await this.client.post('/auth/signin', {
+      const response = await this.client.post('/api/auth/signin', {
         email,
         password,
       });
@@ -253,7 +253,7 @@ class ApiClient {
    */
   async refreshToken(refreshToken: string): Promise<any> {
     try {
-      const response = await this.client.post('/auth/refresh', {
+      const response = await this.client.post('/api/auth/refresh', {
         refresh_token: refreshToken,
       });
       return response.data;
@@ -268,7 +268,7 @@ class ApiClient {
    */
   async getCurrentUser(): Promise<any> {
     try {
-      const response = await this.client.get('/auth/me');
+      const response = await this.client.get('/api/auth/me');
       return response.data;
     } catch (error) {
       this.handleError(error);
