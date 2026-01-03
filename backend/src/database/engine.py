@@ -39,15 +39,27 @@ connect_args = {
 if os.getenv("APP_ENV") != "development":
     connect_args["ssl"] = "require"
 
-async_engine: AsyncEngine = create_async_engine(
-    DATABASE_URL,
-    echo=os.getenv("APP_ENV") == "development",  # Log SQL in development
-    future=True,
-    pool_pre_ping=True,  # Verify connections before using
-    pool_size=10,  # Connection pool size
-    max_overflow=20,  # Allow temporary overflow
-    connect_args=connect_args,
-)
+# Use NullPool for serverless (Vercel), normal pooling for development
+if os.getenv("APP_ENV") == "production":
+    # Serverless: no connection pooling (each request gets fresh connection)
+    async_engine: AsyncEngine = create_async_engine(
+        DATABASE_URL,
+        echo=False,
+        future=True,
+        poolclass=NullPool,  # No connection pooling for serverless
+        connect_args=connect_args,
+    )
+else:
+    # Development: use connection pooling for better performance
+    async_engine: AsyncEngine = create_async_engine(
+        DATABASE_URL,
+        echo=True,  # Log SQL in development
+        future=True,
+        pool_pre_ping=True,  # Verify connections before using
+        pool_size=10,  # Connection pool size
+        max_overflow=20,  # Allow temporary overflow
+        connect_args=connect_args,
+    )
 
 # Create async session factory
 async_session_maker = sessionmaker(
