@@ -6,21 +6,36 @@ It imports the FastAPI app and makes it compatible with Vercel's runtime.
 """
 
 import sys
+import os
 from pathlib import Path
 
-# Add the backend/src directory to the Python path
+# Add the backend directory to the Python path
 backend_dir = Path(__file__).parent.parent / "backend"
 sys.path.insert(0, str(backend_dir))
+
+# Debug: Log the Python path and environment
+print(f"[DEBUG] Python path: {sys.path}")
+print(f"[DEBUG] Backend dir: {backend_dir}")
+print(f"[DEBUG] APP_ENV: {os.getenv('APP_ENV')}")
+print(f"[DEBUG] DATABASE_URL exists: {bool(os.getenv('DATABASE_URL'))}")
 
 try:
     # Import the FastAPI app
     from src.api.app import app
 
+    print("[DEBUG] Successfully imported FastAPI app")
+
     # Vercel expects a variable named 'app' or 'handler'
     handler = app
 
-except ImportError as e:
-    # Fallback if imports fail - return basic info
+except Exception as e:
+    # Fallback if imports fail - return detailed error info
+    print(f"[ERROR] Failed to import app: {e}")
+    print(f"[ERROR] Error type: {type(e).__name__}")
+
+    import traceback
+    traceback.print_exc()
+
     from fastapi import FastAPI
     from fastapi.responses import JSONResponse
 
@@ -28,13 +43,19 @@ except ImportError as e:
 
     @app.get("/")
     @app.get("/health")
+    @app.get("/api/health")
     async def error_handler():
         return JSONResponse(
             status_code=503,
             content={
                 "error": "Backend initialization failed",
+                "error_type": type(e).__name__,
                 "message": str(e),
-                "hint": "Check environment variables and dependencies"
+                "python_path": str(sys.path),
+                "backend_dir": str(backend_dir),
+                "app_env": os.getenv("APP_ENV"),
+                "has_database_url": bool(os.getenv("DATABASE_URL")),
+                "hint": "Check Vercel function logs for full traceback"
             }
         )
 
