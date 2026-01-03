@@ -27,7 +27,9 @@ try:
     print("[DEBUG] Successfully imported FastAPI app")
 
     # Wrap FastAPI with Mangum for Vercel/AWS Lambda compatibility
-    handler = Mangum(app, lifespan="off")
+    def handler(event, context):
+        asgi_handler = Mangum(app, lifespan="off")
+        return asgi_handler(event, context)
 
 except Exception as e:
     # Fallback if imports fail - return detailed error info
@@ -60,4 +62,6 @@ except Exception as e:
             }
         )
 
-    handler = Mangum(fallback_app, lifespan="off")
+    def handler(event, context):
+        asgi_handler = Mangum(fallback_app, lifespan="off")
+        return asgi_handler(event, context)

@@ -2,13 +2,16 @@
 Minimal test handler to verify Vercel Python functions work
 """
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 from mangum import Mangum
 
 app = FastAPI()
 
 @app.get("/")
 async def test():
-    return JSONResponse({"message": "Vercel Python function is working!", "status": "success"})
+    return {"message": "Vercel Python function is working!", "status": "success"}
 
-handler = Mangum(app, lifespan="off")
+# Vercel expects 'app' or a function named 'handler'
+# Create handler as a function, not just assignment
+def handler(event, context):
+    asgi_handler = Mangum(app, lifespan="off")
+    return asgi_handler(event, context)
