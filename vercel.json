@@ -1,15 +1,23 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "frontend/dist",
-  "installCommand": "npm install",
-  "devCommand": "npm run dev",
-  "framework": null,
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index" },
-    { "source": "/health", "destination": "/api/index" },
-    { "source": "/docs", "destination": "/api/index" },
-    { "source": "/redoc", "destination": "/api/index" },
-    { "source": "/openapi.json", "destination": "/api/index" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/index.py" },
+    { "src": "/health", "dest": "/api/index.py" },
+    { "src": "/docs", "dest": "/api/index.py" },
+    { "src": "/redoc", "dest": "/api/index.py" },
+    { "src": "/openapi.json", "dest": "/api/index.py" },
+    { "src": "/(.*)", "dest": "/frontend/dist/$1" }
   ]
 }
