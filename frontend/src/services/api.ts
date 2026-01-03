@@ -8,7 +8,9 @@ import axios, { AxiosInstance, AxiosError } from "axios";
 import { translations } from "../locales/en";
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// For Vercel: use empty string (relative paths like /api/auth/signup)
+// For local dev: use http://localhost:8000
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.MODE === 'production' ? '' : 'http://localhost:8000');
 
 /**
  * Chat request payload
