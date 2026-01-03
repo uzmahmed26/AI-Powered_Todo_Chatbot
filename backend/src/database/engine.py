@@ -36,7 +36,7 @@ connect_args = {
 }
 
 # Only require SSL for production (cloud deployments like Neon)
-if os.getenv("ENVIRONMENT") != "development":
+if os.getenv("APP_ENV") != "development":
     connect_args["ssl"] = "require"
 
 async_engine: AsyncEngine = create_async_engine(
@@ -97,7 +97,7 @@ async def init_db() -> None:
     """
     async with async_engine.begin() as conn:
         # Import all models to ensure they're registered
-        from ..models import task, conversation, message  # noqa: F401
+        from ..models import task, conversation, message, user  # noqa: F401
 
         await conn.run_sync(SQLModel.metadata.create_all)
 

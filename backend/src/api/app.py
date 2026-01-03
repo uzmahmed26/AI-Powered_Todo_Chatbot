@@ -38,15 +38,19 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info("Starting Phase III Smart Todo ChatKit App")
-    try:
-        # Initialize database (creates tables if not exists)
-        # Note: In production, use Alembic migrations instead
-        # await init_db()
-        logger.info("Database initialization skipped (use Alembic migrations)")
-    except Exception as e:
-        logger.error(f"Database initialization error: {e}")
-        # Don't fail startup if DB connection fails
-        # (allows app to start for health checks)
+
+    # Only initialize database tables in development
+    # In production/serverless, tables should already exist (use Alembic migrations)
+    import os
+    if os.getenv("APP_ENV") == "development":
+        try:
+            await init_db()
+            logger.info("Database initialized successfully")
+        except Exception as e:
+            logger.error(f"Database initialization error: {e}")
+            # Don't fail startup if DB connection fails
+    else:
+        logger.info("Skipping database initialization (production mode - tables should exist)")
 
     # Initialize MCP tools
     try:
