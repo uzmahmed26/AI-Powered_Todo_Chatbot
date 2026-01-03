@@ -52,29 +52,31 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("Skipping database initialization (production mode - tables should exist)")
 
-    # Initialize MCP tools
-    try:
-        from ..mcp_server.server import register_all_tools
+    # Initialize MCP tools and agent skills only in development
+    # In serverless/production, lazy load these to improve cold start time
+    if os.getenv("APP_ENV") == "development":
+        # Initialize MCP tools
+        try:
+            from ..mcp_server.server import register_all_tools
 
-        register_all_tools()
-        logger.info("MCP tools registered successfully")
-    except Exception as e:
-        logger.warning(f"MCP tools registration failed: {e}")
-        # Continue startup even if tools fail to register
-        # (tools will be registered when implementations are available)
+            register_all_tools()
+            logger.info("MCP tools registered successfully")
+        except Exception as e:
+            logger.warning(f"MCP tools registration failed: {e}")
 
-    # Initialize agent skills
-    try:
-        from ..agent.client import get_async_openai_client
-        from ..skills.init_skills import init_skills
+        # Initialize agent skills
+        try:
+            from ..agent.client import get_async_openai_client
+            from ..skills.init_skills import init_skills
 
-        # Get OpenAI client for AI-powered skills
-        openai_client = get_async_openai_client()
-        init_skills(openai_client)
-        logger.info("Agent skills initialized successfully")
-    except Exception as e:
-        logger.warning(f"Agent skills initialization failed: {e}")
-        # Continue startup even if skills fail to initialize
+            # Get OpenAI client for AI-powered skills
+            openai_client = get_async_openai_client()
+            init_skills(openai_client)
+            logger.info("Agent skills initialized successfully")
+        except Exception as e:
+            logger.warning(f"Agent skills initialization failed: {e}")
+    else:
+        logger.info("Skipping MCP tools and skills initialization (production mode - lazy loading enabled)")
 
     yield
 
