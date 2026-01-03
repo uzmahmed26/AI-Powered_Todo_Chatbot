@@ -1,14 +1,13 @@
 """
 Vercel serverless function entry point for FastAPI backend.
 
-This file serves as the handler for Vercel's Python serverless functions.
-It imports the FastAPI app and makes it compatible with Vercel's runtime.
+Vercel supports ASGI apps natively - no Mangum needed!
+Just export the FastAPI 'app' variable.
 """
 
 import sys
 import os
 from pathlib import Path
-from mangum import Mangum
 
 # Add the backend directory to the Python path
 backend_dir = Path(__file__).parent.parent / "backend"
@@ -26,10 +25,7 @@ try:
 
     print("[DEBUG] Successfully imported FastAPI app")
 
-    # Wrap FastAPI with Mangum for Vercel/AWS Lambda compatibility
-    def handler(event, context):
-        asgi_handler = Mangum(app, lifespan="off")
-        return asgi_handler(event, context)
+    # Vercel supports ASGI natively - just export 'app'!
 
 except Exception as e:
     # Fallback if imports fail - return detailed error info
@@ -42,11 +38,11 @@ except Exception as e:
     from fastapi import FastAPI
     from fastapi.responses import JSONResponse
 
-    fallback_app = FastAPI(title="Phase III Smart Todo API - Error")
+    app = FastAPI(title="Phase III Smart Todo API - Error")
 
-    @fallback_app.get("/")
-    @fallback_app.get("/health")
-    @fallback_app.get("/api/health")
+    @app.get("/")
+    @app.get("/health")
+    @app.get("/api/health")
     async def error_handler():
         return JSONResponse(
             status_code=503,
@@ -61,7 +57,3 @@ except Exception as e:
                 "hint": "Check Vercel function logs for full traceback"
             }
         )
-
-    def handler(event, context):
-        asgi_handler = Mangum(fallback_app, lifespan="off")
-        return asgi_handler(event, context)
