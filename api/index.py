@@ -8,6 +8,7 @@ It imports the FastAPI app and makes it compatible with Vercel's runtime.
 import sys
 import os
 from pathlib import Path
+from mangum import Mangum
 
 # Add the backend directory to the Python path
 backend_dir = Path(__file__).parent.parent / "backend"
@@ -25,8 +26,8 @@ try:
 
     print("[DEBUG] Successfully imported FastAPI app")
 
-    # Vercel expects a variable named 'app' or 'handler'
-    handler = app
+    # Wrap FastAPI with Mangum for Vercel/AWS Lambda compatibility
+    handler = Mangum(app, lifespan="off")
 
 except Exception as e:
     # Fallback if imports fail - return detailed error info
@@ -39,11 +40,11 @@ except Exception as e:
     from fastapi import FastAPI
     from fastapi.responses import JSONResponse
 
-    app = FastAPI(title="Phase III Smart Todo API - Error")
+    fallback_app = FastAPI(title="Phase III Smart Todo API - Error")
 
-    @app.get("/")
-    @app.get("/health")
-    @app.get("/api/health")
+    @fallback_app.get("/")
+    @fallback_app.get("/health")
+    @fallback_app.get("/api/health")
     async def error_handler():
         return JSONResponse(
             status_code=503,
@@ -59,4 +60,4 @@ except Exception as e:
             }
         )
 
-    handler = app
+    handler = Mangum(fallback_app, lifespan="off")
