@@ -5,6 +5,10 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Task Controls */
@@ -94,10 +98,44 @@
   margin: 0 auto;
 }
 
+/* Tasks Wrapper - Flexible scrollable container */
+.tasks-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
 /* Tasks Grid */
 .tasks-grid {
   display: grid;
   gap: 0.75rem;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Scrollbar Styling for Tasks Grid */
+.tasks-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tasks-grid::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 10px;
+}
+
+.tasks-grid::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 10px;
+  border: 2px solid #F1F5F9;
+  transition: background 0.2s ease;
+}
+
+.tasks-grid::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
 
 /* Task Count */
@@ -105,9 +143,10 @@
   text-align: center;
   color: #6b7280;
   font-size: 0.875rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
+  padding: 1rem 0.5rem 0.5rem 0.5rem;
   border-top: 1px solid #e5e7eb;
+  background: white;
+  flex-shrink: 0;
 }
 
 /* Responsive */

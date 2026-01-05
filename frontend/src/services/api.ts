@@ -122,7 +122,7 @@ class ApiClient {
       if (options?.sort_order) params.append('sort_order', options.sort_order);
 
       const queryString = params.toString();
-      const url = `/${userId}/tasks${queryString ? '?' + queryString : ''}`;
+      const url = `/api/${userId}/tasks${queryString ? '?' + queryString : ''}`;
 
       const response = await this.client.get(url);
       return response.data;
@@ -137,7 +137,7 @@ class ApiClient {
    */
   async completeTask(userId: string, taskId: number): Promise<any> {
     try {
-      const response = await this.client.post(`/${userId}/tasks/${taskId}/complete`);
+      const response = await this.client.post(`/api/${userId}/tasks/${taskId}/complete`);
       return response.data;
     } catch (error) {
       this.handleError(error);
@@ -150,7 +150,7 @@ class ApiClient {
    */
   async deleteTask(userId: string, taskId: number): Promise<any> {
     try {
-      const response = await this.client.delete(`/${userId}/tasks/${taskId}`);
+      const response = await this.client.delete(`/api/${userId}/tasks/${taskId}`);
       return response.data;
     } catch (error) {
       this.handleError(error);
@@ -178,7 +178,7 @@ class ApiClient {
       };
 
       const response = await this.client.post<ChatResponse>(
-        `/${userId}/chat`,
+        `/api/${userId}/chat`,
         request
       );
 

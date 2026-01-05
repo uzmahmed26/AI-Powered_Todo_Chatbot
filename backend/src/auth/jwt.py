@@ -108,7 +108,7 @@ def decode_token(token: str, token_type: str = "access") -> Optional[TokenData]:
         if payload.get("type") != token_type:
             return None
 
-        user_id: str = payload.get("user_id")
+        user_id: str = payload.get("sub")
         email: str = payload.get("email")
 
         if user_id is None or email is None:

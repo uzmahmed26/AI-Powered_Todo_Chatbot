@@ -50,7 +50,6 @@ class TodoAgent:
         self.language = language
         self.client: Optional[AsyncOpenAI] = None
         self.model_config = get_model_config()
-        self.system_prompt = self._build_system_prompt(language)
         self.translator: Optional[TranslationService] = None
 
     def _build_system_prompt(self, language: str = "en") -> str:
@@ -63,11 +62,17 @@ class TodoAgent:
         Returns:
             System prompt defining agent behavior
         """
+        from datetime import datetime
+        current_date = datetime.now().strftime("%Y-%m-%d")
+        current_day = datetime.now().strftime("%A")
+
         language_instruction = ""
         if language == "ur":
             language_instruction = "\n\n**IMPORTANT: You must respond in Urdu language. All your responses, confirmations, and messages must be in Urdu (اردو).**\n"
 
         return f"""You are a helpful AI assistant for managing todo tasks. Your actions are performed for a specific user, and you already know their user_id. You must not ask for it.{language_instruction}
+
+**IMPORTANT: Today's date is {current_date} ({current_day}). Use this as the reference for all date calculations.**
 
 Your role is to:
 
@@ -117,12 +122,28 @@ Your role is to:
    - "Add shopping task for groceries" → category="shopping"
    - "Buy eggs" → category="shopping" (infer from "buy")
 
-   Due dates:
-   - "due today" → today at 23:59
-   - "due tomorrow" → tomorrow at 12:00
-   - "due next week" → 7 days from now
-   - "due January 15" → 2025-01-15T12:00:00Z
-   - "due in 3 days" → 3 days from now at 12:00
+   Due dates - CRITICAL: Always calculate from TODAY which is {current_date} ({current_day}):
+   - "due today" → {current_date} at 23:59
+   - "due tomorrow" → add 1 day to {current_date} at 12:00
+   - "due in 3 days" → add 3 days to {current_date} at 12:00
+   - "due next week" → add 7 days to {current_date}
+
+   WEEKDAY RULES - CRITICAL (today is {current_day}, {current_date}):
+   When user says "next Monday", "by Friday", etc., they mean NEXT WEEK's occurrence, NOT this week.
+
+   CORRECT DATE CALCULATIONS based on calendar for today (Sunday, Jan 4, 2026):
+   - "next Monday" or "by Monday" → 2026-01-12 (next week's Monday, NOT tomorrow Jan 5)
+   - "next Tuesday" or "by Tuesday" → 2026-01-13 (next week's Tuesday, NOT Jan 6)
+   - "next Wednesday" or "by Wednesday" → 2026-01-14 (next week's Wednesday, NOT Jan 7)
+   - "next Thursday" or "by Thursday" → 2026-01-15 (next week's Thursday, NOT Jan 8)
+   - "next Friday" or "by Friday" → 2026-01-16 (next week's Friday, NOT Jan 9)
+   - "next Saturday" or "by Saturday" → 2026-01-17 (next week's Saturday, NOT Jan 10)
+   - "next Sunday" or "by Sunday" → 2026-01-11 (next Sunday, 7 days ahead)
+
+   RULE: Add 7+ days to get to next week's occurrence of that weekday. Skip this week entirely.
+
+   SPECIFIC DATES:
+   - "January 15" or "Jan 15" → 2026-01-15T12:00:00Z
 
    Recurrence patterns:
    - "every day" → is_recurring=true, recurrence_pattern="daily"
@@ -182,7 +203,9 @@ Be helpful, concise, and user-friendly!"""
         Returns:
             Complete message list with system prompt
         """
-        messages = [{"role": "system", "content": self.system_prompt}]
+        # Build fresh system prompt with current date
+        system_prompt = self._build_system_prompt(self.language)
+        messages = [{"role": "system", "content": system_prompt}]
 
         # Add conversation history (last N messages for context)
         if conversation_history:

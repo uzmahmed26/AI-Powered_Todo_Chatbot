@@ -149,22 +149,22 @@ const TaskList: React.FC<TaskListProps> = ({ userId }) => {
       )}
 
       {!loading && tasks.length > 0 && (
-        <div className="tasks-grid">
-          {tasks.map(task => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onComplete={handleCompleteTask}
-              onDelete={handleDeleteTask}
-            />
-          ))}
-        </div>
-      )}
+        <div className="tasks-wrapper">
+          <div className="tasks-grid">
+            {tasks.map(task => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onComplete={handleCompleteTask}
+                onDelete={handleDeleteTask}
+              />
+            ))}
+          </div>
 
-      {/* Task Count */}
-      {!loading && tasks.length > 0 && (
-        <div className="task-count">
-          Showing {tasks.length} task{tasks.length !== 1 ? 's' : ''}
+          {/* Task Count */}
+          <div className="task-count">
+            Showing {tasks.length} task{tasks.length !== 1 ? 's' : ''}
+          </div>
         </div>
       )}
     </div>
